@@ -310,11 +310,12 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      - name: Symlink custom working directory
+      - name: Clean and Symlink custom working directory
         shell: cmd
         if: runner.os == 'Windows' && matrix.config.working-directory
         run: |
-          if not exist "${{ matrix.config.working-directory }}" mklink /d "${{ matrix.config.working-directory }}" "C:\actions-runner\_work\arduino-ide\arduino-ide"
+          if exist "${{ matrix.config.working-directory }}" rmdir /s /q "${{ matrix.config.working-directory }}"
+          mklink /d "${{ matrix.config.working-directory }}" "C:\actions-runner\_work\arduino-ide\arduino-ide"
 
       - name: Checkout
         uses: actions/checkout@v5
