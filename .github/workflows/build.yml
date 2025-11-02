@@ -75,11 +75,6 @@ env:
         # and the companion needs.select-targets.outputs.merge-channel-files property (output values always have string
         # type).
         mergeable-channel-file: 'false'
-        # as this runs on a self hosted runner, we need to avoid building with the default working directory path,
-        # otherwise paths in the build job will be too long for `light.exe`
-        # we use the below as a Symbolic link (just changing the wd will break the checkout action)
-        # this is a work around (see: https://github.com/actions/checkout/issues/197).
-        working-directory: 'C:\a'
       artifacts:
         - path: '*Windows_64bit.exe'
           name: Windows_X86-64_interactive_installer
@@ -310,11 +305,6 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      - name: Symlink custom working directory
-        shell: cmd
-        if: runner.os == 'Windows' && matrix.config.working-directory
-        run: |
-          if not exist "${{ matrix.config.working-directory }}" mklink /d "${{ matrix.config.working-directory }}" "C:\actions-runner\_work\arduino-ide\arduino-ide"
 
       - name: Checkout
         uses: actions/checkout@v5
@@ -352,13 +342,6 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           version: 3.x
-
-      - name: Clean working directory (Windows only)
-        if: runner.os == 'Windows' && matrix.config.working-directory == 'C:\\a'
-        shell: cmd
-        run: |
-            if exist C:\a rmdir /s /q C:\a
-
 
       - name: Package
         env:
