@@ -310,52 +310,11 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      - name: Clean up custom working directory if it exists
+      - name: Symlink custom working directory
         shell: cmd
         if: runner.os == 'Windows' && matrix.config.working-directory
         run: |
-          if exist "${{ matrix.config.working-directory }}" rmdir /s /q "${{ matrix.config.working-directory }}"
-
-      - name: Ensure custom working directory is a symlink
-        shell: powershell
-        if: runner.os == 'Windows' && matrix.config.working-directory
-        run: |
-            $wd = '${{ matrix.config.working-directory }}'
-            Write-Host "Preparing working directory: $wd"
-
-            if (-not (Test-Path $wd)) {
-            Write-Host "$wd does not exist. Creating symlink..."
-            cmd /c mklink /d "$wd" "C:\actions-runner\_work\arduino-ide\arduino-ide"
-            exit $LASTEXITCODE
-            }
-
-            # Determine if the existing path is a reparse point (symlink/junction)
-            try {
-            $item = Get-Item -LiteralPath $wd -Force
-            } catch {
-            Write-Host "Failed to inspect $wd: $_"
-            throw
-            }
-
-            if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
-            Write-Host "$wd is a reparse point. Removing it..."
-            Remove-Item -LiteralPath $wd -Force
-            cmd /c mklink /d "$wd" "C:\actions-runner\_work\arduino-ide\arduino-ide"
-            exit $LASTEXITCODE
-            }
-
-            # It's an existing regular directory — remove it to avoid stale state conflicts
-            Write-Host "$wd exists as a regular directory. Removing recursively..."
-            try {
-            Remove-Item -LiteralPath $wd -Recurse -Force -ErrorAction Stop
-            } catch {
-            Write-Host "Failed to remove $wd: $_"
-            throw
-            }
-
-            Write-Host "Creating symlink..."
-            cmd /c mklink /d "$wd" "C:\actions-runner\_work\arduino-ide\arduino-ide"
-            exit $LASTEXITCODE
+          if not exist "${{ matrix.config.working-directory }}" mklink /d "${{ matrix.config.working-directory }}" "C:\actions-runner\_work\arduino-ide\arduino-ide"
 
       - name: Checkout
         uses: actions/checkout@v5
@@ -393,6 +352,13 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           version: 3.x
+
+      - name: Clean working directory (Windows only)
+        if: runner.os == 'Windows' && matrix.config.working-directory == 'C:\\a'
+        shell: cmd
+        run: |
+            if exist C:\a rmdir /s /q C:\a
+
 
       - name: Package
         env:
