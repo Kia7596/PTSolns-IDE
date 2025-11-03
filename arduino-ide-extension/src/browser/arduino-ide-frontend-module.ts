@@ -215,11 +215,7 @@ import { NotificationsRenderer as TheiaNotificationsRenderer } from '@theia/mess
 import { NotificationsRenderer } from './theia/messages/notifications-renderer';
 import { SketchbookWidgetContribution } from './widgets/sketchbook/sketchbook-widget-contribution';
 import { LocalCacheFsProvider } from './local-cache/local-cache-fs-provider';
-import { CloudSketchbookWidget } from './widgets/cloud-sketchbook/cloud-sketchbook-widget';
-import { CloudSketchbookTreeWidget } from './widgets/cloud-sketchbook/cloud-sketchbook-tree-widget';
-import { createCloudSketchbookTreeWidget } from './widgets/cloud-sketchbook/cloud-sketchbook-tree-container';
 import { CreateApi } from './create/create-api';
-import { ShareSketchDialog } from './dialogs/cloud-share-sketch-dialog';
 import { AuthenticationClientService } from './auth/authentication-client-service';
 import {
   AuthenticationService,
@@ -227,8 +223,6 @@ import {
 } from '../common/protocol/authentication-service';
 import { CreateFsProvider } from './create/create-fs-provider';
 import { FileServiceContribution } from '@theia/filesystem/lib/browser/file-service';
-import { CloudSketchbookContribution } from './widgets/cloud-sketchbook/cloud-sketchbook-contributions';
-import { CloudSketchbookCompositeWidget } from './widgets/cloud-sketchbook/cloud-sketchbook-composite-widget';
 import { SketchbookWidget } from './widgets/sketchbook/sketchbook-widget';
 import { SketchbookTreeWidget } from './widgets/sketchbook/sketchbook-tree-widget';
 import { createSketchbookTreeWidget } from './widgets/sketchbook/sketchbook-tree-container';
@@ -319,7 +313,6 @@ import { UserFields } from './contributions/user-fields';
 import { UpdateIndexes } from './contributions/update-indexes';
 import { InterfaceScale } from './contributions/interface-scale';
 import { OpenHandler } from '@theia/core/lib/browser/opener-service';
-// import { NewCloudSketch } from './contributions/new-cloud-sketch';
 import { SketchbookCompositeWidget } from './widgets/sketchbook/sketchbook-composite-widget';
 import { WindowTitleUpdater } from './theia/core/window-title-updater';
 import { WindowTitleUpdater as TheiaWindowTitleUpdater } from '@theia/core/lib/browser/window/window-title-updater';
@@ -339,12 +332,9 @@ import { DefaultDebugSessionFactory } from './theia/debug/debug-session-contribu
 import { DebugSessionFactory } from '@theia/debug/lib/browser/debug-session-contribution';
 import { ConfigServiceClient } from './config/config-service-client';
 import { ValidateSketch } from './contributions/validate-sketch';
-// import { RenameCloudSketch } from './contributions/rename-cloud-sketch';
 import { CreateFeatures } from './create/create-features';
-import { Account } from './contributions/account';
 import { SidebarBottomMenuWidget } from './theia/core/sidebar-bottom-menu-widget';
 import { SidebarBottomMenuWidget as TheiaSidebarBottomMenuWidget } from '@theia/core/lib/browser/shell/sidebar-bottom-menu-widget';
-import { CreateCloudCopy } from './contributions/create-cloud-copy';
 import { FileResourceResolver } from './theia/filesystem/file-resource';
 import { FileResourceResolver as TheiaFileResourceResolver } from '@theia/filesystem/lib/browser/file-resource';
 import { StylingParticipant } from '@theia/core/lib/browser/styling-service';
@@ -752,12 +742,8 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
   Contribution.configure(bind, DeleteSketch);
   Contribution.configure(bind, UpdateIndexes);
   Contribution.configure(bind, InterfaceScale);
-//   Contribution.configure(bind, NewCloudSketch);
   Contribution.configure(bind, ValidateSketch);
-//   Contribution.configure(bind, RenameCloudSketch);
-  Contribution.configure(bind, Account);
-  Contribution.configure(bind, CloudSketchbookContribution);
-  Contribution.configure(bind, CreateCloudCopy);
+//   Contribution.configure(bind, Account);
   Contribution.configure(bind, UpdateArduinoState);
   Contribution.configure(bind, BoardsDataMenuUpdater);
   Contribution.configure(bind, AutoSelectProgrammer);
@@ -939,17 +925,11 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
     createWidget: () => ctx.container.get(SketchbookCompositeWidget),
   }));
 
-  bind(CloudSketchbookWidget).toSelf();
-  rebind(SketchbookWidget).toService(CloudSketchbookWidget);
-  bind(CloudSketchbookTreeWidget).toDynamicValue(({ container }) =>
-    createCloudSketchbookTreeWidget(container)
-  );
   bind(CreateApi).toSelf().inSingletonScope();
   bind(SketchCache).toSelf().inSingletonScope();
   bind(CreateFeatures).toSelf().inSingletonScope();
   bind(FrontendApplicationContribution).toService(CreateFeatures);
 
-  bind(ShareSketchDialog).toSelf().inSingletonScope();
   bind(AuthenticationClientService).toSelf().inSingletonScope();
   bind(CommandContribution).toService(AuthenticationClientService);
   bind(FrontendApplicationContribution).toService(AuthenticationClientService);
@@ -966,11 +946,6 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
   bind(FileServiceContribution).toService(CreateFsProvider);
   bind(LocalCacheFsProvider).toSelf().inSingletonScope();
   bind(FileServiceContribution).toService(LocalCacheFsProvider);
-  bind(CloudSketchbookCompositeWidget).toSelf();
-  bind(WidgetFactory).toDynamicValue((ctx) => ({
-    id: 'cloud-sketchbook-composite-widget',
-    createWidget: () => ctx.container.get(CloudSketchbookCompositeWidget),
-  }));
 
   bind(UploadFirmwareDialog).toSelf().inSingletonScope();
   bind(UploadFirmwareDialogProps).toConstantValue({
