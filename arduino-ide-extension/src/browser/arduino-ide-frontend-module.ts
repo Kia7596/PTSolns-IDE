@@ -743,7 +743,6 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
   Contribution.configure(bind, UpdateIndexes);
   Contribution.configure(bind, InterfaceScale);
   Contribution.configure(bind, ValidateSketch);
-//   Contribution.configure(bind, Account);
   Contribution.configure(bind, UpdateArduinoState);
   Contribution.configure(bind, BoardsDataMenuUpdater);
   Contribution.configure(bind, AutoSelectProgrammer);
