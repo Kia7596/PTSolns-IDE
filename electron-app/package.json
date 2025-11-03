@@ -102,10 +102,10 @@
       }
     }
   },
-  "author": "Arduino SA",
+  "author": "Arduino SA & PTSolns",
   "description": "PTSolns IDE",
   "build": {
-    "appId": "cc.arduino.IDE2",
+    "appId": "com.PTSolns.IDE",
     "productName": "PTSolns IDE",
     "asar": false,
     "detectUpdateChannel": false,

@@ -52,7 +52,7 @@ export class About extends Contribution {
         cliVersion,
         nls.localize(
           'arduino/about/copyright',
-          'Copyright © {0} Arduino SA',
+          'Copyright © {0} Arduino SA & PTSolns',
           new Date().getFullYear().toString()
         )
       );
