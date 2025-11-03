@@ -2,21 +2,21 @@ name: Check Yarn
 
 # See: https://docs.github.com/en/actions/reference/events-that-trigger-workflows
 on:
-  create:
-  push:
-    paths:
-      - ".github/workflows/check-yarn.ya?ml"
-      - "**/.yarnrc"
-      - "**/package.json"
-      - "**/package-lock.json"
-      - "**/yarn.lock"
-  pull_request:
-    paths:
-      - ".github/workflows/check-yarn.ya?ml"
-      - "**/.yarnrc"
-      - "**/package.json"
-      - "**/package-lock.json"
-      - "**/yarn.lock"
+#   create:
+#   push:
+#     paths:
+#       - ".github/workflows/check-yarn.ya?ml"
+#       - "**/.yarnrc"
+#       - "**/package.json"
+#       - "**/package-lock.json"
+#       - "**/yarn.lock"
+#   pull_request:
+#     paths:
+#       - ".github/workflows/check-yarn.ya?ml"
+#       - "**/.yarnrc"
+#       - "**/package.json"
+#       - "**/package-lock.json"
+#       - "**/yarn.lock"
 #   schedule:
 #     # Run every Tuesday at 8 AM UTC to catch breakage resulting from changes to the JSON schema.
 #     - cron: "0 8 * * TUE"

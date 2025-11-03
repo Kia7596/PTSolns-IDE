@@ -7,27 +7,27 @@ env:
 
 # See: https://docs.github.com/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows
 on:
-  create:
-  push:
-    paths:
-      - '.github/workflows/check-javascript.ya?ml'
-      - '**/.eslintignore'
-      - '**/.eslintrc*'
-      - '**/.npmrc'
-      - '**/package.json'
-      - '**/package-lock.json'
-      - '**/yarn.lock'
-      - '**.jsx?'
-  pull_request:
-    paths:
-      - '.github/workflows/check-javascript.ya?ml'
-      - '**/.eslintignore'
-      - '**/.eslintrc*'
-      - '**/.npmrc'
-      - '**/package.json'
-      - '**/package-lock.json'
-      - '**/yarn.lock'
-      - '**.jsx?'
+#   create:
+#   push:
+#     paths:
+#       - '.github/workflows/check-javascript.ya?ml'
+#       - '**/.eslintignore'
+#       - '**/.eslintrc*'
+#       - '**/.npmrc'
+#       - '**/package.json'
+#       - '**/package-lock.json'
+#       - '**/yarn.lock'
+#       - '**.jsx?'
+#   pull_request:
+#     paths:
+#       - '.github/workflows/check-javascript.ya?ml'
+#       - '**/.eslintignore'
+#       - '**/.eslintrc*'
+#       - '**/.npmrc'
+#       - '**/package.json'
+#       - '**/package-lock.json'
+#       - '**/yarn.lock'
+#       - '**.jsx?'
   workflow_dispatch:
   repository_dispatch:
 

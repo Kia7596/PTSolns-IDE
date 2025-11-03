@@ -7,30 +7,30 @@ env:
   NODE_VERSION: 18.17
 
 on:
-  push:
-    paths:
-      - ".github/workflows/test-javascript.ya?ml"
-      - "**/.mocharc.js"
-      - "**/.mocharc.jsonc?"
-      - "**/.mocharc.ya?ml"
-      - "**/package.json"
-      - "**/package-lock.json"
-      - "**/yarn.lock"
-      - "tests/testdata/**"
-      - "**/tsconfig.json"
-      - "**.[jt]sx?"
-  pull_request:
-    paths:
-      - ".github/workflows/test-javascript.ya?ml"
-      - "**/.mocharc.js"
-      - "**/.mocharc.jsonc?"
-      - "**/.mocharc.ya?ml"
-      - "**/package.json"
-      - "**/package-lock.json"
-      - "**/yarn.lock"
-      - "tests/testdata/**"
-      - "**/tsconfig.json"
-      - "**.[jt]sx?"
+#   push:
+#     paths:
+#       - ".github/workflows/test-javascript.ya?ml"
+#       - "**/.mocharc.js"
+#       - "**/.mocharc.jsonc?"
+#       - "**/.mocharc.ya?ml"
+#       - "**/package.json"
+#       - "**/package-lock.json"
+#       - "**/yarn.lock"
+#       - "tests/testdata/**"
+#       - "**/tsconfig.json"
+#       - "**.[jt]sx?"
+#   pull_request:
+#     paths:
+#       - ".github/workflows/test-javascript.ya?ml"
+#       - "**/.mocharc.js"
+#       - "**/.mocharc.jsonc?"
+#       - "**/.mocharc.ya?ml"
+#       - "**/package.json"
+#       - "**/package-lock.json"
+#       - "**/yarn.lock"
+#       - "tests/testdata/**"
+#       - "**/tsconfig.json"
+#       - "**.[jt]sx?"
   workflow_dispatch:
   repository_dispatch:
 

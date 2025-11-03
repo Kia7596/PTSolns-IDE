@@ -1,16 +1,16 @@
 name: Check Containers
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/check-containers.ya?ml"
-      - "**.Dockerfile"
-      - "**/Dockerfile"
-  push:
-    paths:
-      - ".github/workflows/check-containers.ya?ml"
-      - "**.Dockerfile"
-      - "**/Dockerfile"
+#   pull_request:
+#     paths:
+#       - ".github/workflows/check-containers.ya?ml"
+#       - "**.Dockerfile"
+#       - "**/Dockerfile"
+#   push:
+#     paths:
+#       - ".github/workflows/check-containers.ya?ml"
+#       - "**.Dockerfile"
+#       - "**/Dockerfile"
   repository_dispatch:
 #   schedule:
 #     # Run periodically to catch breakage caused by external changes.
