@@ -17,6 +17,34 @@ import type { Defined } from '../../common/types';
 import { NotificationCenter } from '../notification-center';
 import { BoardsConfigDialogState } from './boards-config-dialog';
 
+interface BoardLabelProps {
+  label: string;
+}
+
+const BoardLabel: React.FC<BoardLabelProps> = ({ label }) => {
+  const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/;
+  const match = label.match(urlRegex);
+
+  if (match && match.index !== undefined) {
+    const text = match[1];
+    const url = match[2];
+    const preText = label.substring(0, match.index);
+    const postText = label.substring(match.index + match[0].length);
+
+    return (
+      <>
+        {preText}
+        <a href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+          {text}
+        </a>
+        {postText}
+      </>
+    );
+  }
+
+  return <>{label}</>;
+};
+
 namespace BoardsConfigComponent {
   export interface Props {
     /**
@@ -50,7 +78,7 @@ namespace BoardsConfigComponent {
 
 class Item<T> extends React.Component<{
   item: T;
-  label: string;
+  label: string | React.ReactNode;
   selected: boolean;
   onClick: (item: T) => void;
   missing?: boolean;
@@ -255,7 +283,7 @@ export class BoardsConfigComponent extends React.Component<
       <Item<Board.Detailed>
         key={toKey(board)}
         item={board}
-        label={board.name}
+        label={<BoardLabel label={board.name} />}
         details={board.details}
         selected={board.selected}
         onClick={this.selectBoard}
