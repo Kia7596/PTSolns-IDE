@@ -19,9 +19,10 @@ import { BoardsConfigDialogState } from './boards-config-dialog';
 
 interface BoardLabelProps {
   label: string;
+  openUrl: (url: string) => void;
 }
 
-const BoardLabel: React.FC<BoardLabelProps> = ({ label }) => {
+const BoardLabel: React.FC<BoardLabelProps> = ({ label, openUrl }) => {
   const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/;
   const match = label.match(urlRegex);
 
@@ -34,7 +35,7 @@ const BoardLabel: React.FC<BoardLabelProps> = ({ label }) => {
     return (
       <>
         {preText}
-        <a href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+        <a onClick={(e) => { e.stopPropagation(); openUrl(url); }}>
           {text}
         </a>
         {postText}
@@ -67,6 +68,7 @@ namespace BoardsConfigComponent {
     readonly ports: (
       predicate?: (port: DetectedPort) => boolean
     ) => readonly DetectedPort[];
+    readonly openUrl: (url: string) => void;
   }
 
   export interface State {
@@ -283,7 +285,7 @@ export class BoardsConfigComponent extends React.Component<
       <Item<Board.Detailed>
         key={toKey(board)}
         item={board}
-        label={<BoardLabel label={board.name} />}
+        label={<BoardLabel label={board.name} openUrl={this.props.openUrl} />}
         details={board.details}
         selected={board.selected}
         onClick={this.selectBoard}

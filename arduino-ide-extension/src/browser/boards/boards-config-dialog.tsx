@@ -22,6 +22,7 @@ import {
 } from '../../common/protocol/boards-service';
 import type { Defined } from '../../common/types';
 import { NotificationCenter } from '../notification-center';
+import { WindowService } from '@theia/core/lib/browser/window/window-service';
 import { ReactDialog } from '../theia/dialogs/dialogs';
 import { BoardsConfigComponent } from './boards-config-component';
 import { BoardsServiceProvider } from './boards-service-provider';
@@ -41,6 +42,8 @@ export class BoardsConfigDialog extends ReactDialog<BoardsConfigDialogState> {
   private readonly notificationCenter: NotificationCenter;
   @inject(FrontendApplicationStateService)
   private readonly appStateService: FrontendApplicationStateService;
+  @inject(WindowService)
+  protected readonly windowService: WindowService;
 
   private readonly onFilterTextDidChangeEmitter: Emitter<
     Defined<EditBoardsConfigActionParams['query']>
@@ -66,6 +69,11 @@ export class BoardsConfigDialog extends ReactDialog<BoardsConfigDialogState> {
   ): readonly DetectedPort[] => {
     return this.boardsServiceProvider.boardList.ports(predicate);
   };
+
+  private readonly openUrl = (url: string): void => {
+    this.windowService.openNewWindow(url, { external: true });
+  };
+
   private _boardsConfig: BoardsConfigDialogState;
   /**
    * When the dialog's boards result set is limited to a subset of boards when searching, this field is set.
@@ -163,6 +171,7 @@ export class BoardsConfigDialog extends ReactDialog<BoardsConfigDialogState> {
               onAppStateDidChange={this.notificationCenter.onAppStateDidChange}
               searchBoards={this.searchBoards}
               ports={this.ports}
+              openUrl={this.openUrl}
             />
           </div>
         </div>
