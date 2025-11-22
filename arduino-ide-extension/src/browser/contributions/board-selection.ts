@@ -281,7 +281,9 @@ SN: ${SN}
                 platformMenuPath,
                 packageLabel,
                 {
-                  order: packageName.toLowerCase(),
+                  order: packageName.toLowerCase().startsWith('ptsolns')
+                    ? `0-${packageName.toLowerCase()}`
+                    : `1-${packageName.toLowerCase()}`,
                 }
               );
             }
