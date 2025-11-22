@@ -281,7 +281,20 @@ export class BoardsConfigComponent extends React.Component<
       return label;
     };
 
-    const boardsList = Array.from(distinctBoards.values()).map((board) => (
+    const sortedBoards = Array.from(distinctBoards.values()).sort((a, b) => {
+      const aIsPTSolns = a.name.startsWith('PTSolns');
+      const bIsPTSolns = b.name.startsWith('PTSolns');
+
+      if (aIsPTSolns && !bIsPTSolns) {
+        return -1;
+      }
+      if (!aIsPTSolns && bIsPTSolns) {
+        return 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    const boardsList = sortedBoards.map((board) => (
       <Item<Board.Detailed>
         key={toKey(board)}
         item={board}
