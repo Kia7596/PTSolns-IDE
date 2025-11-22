@@ -17,6 +17,16 @@ import type {
   BoardsServiceProvider,
 } from './boards-service-provider';
 
+function stripUrl(label: string): string {
+  const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/;
+  const match = label.match(urlRegex);
+  if (match && match.index !== undefined) {
+    const text = label.substring(0, match.index);
+    return `${text}`;
+  }
+  return label;
+}
+
 export interface BoardsDropDownListCoords {
   readonly top: number;
   readonly left: number;
@@ -286,7 +296,8 @@ export class BoardsToolBarItem extends React.Component<
 
   override render(): React.ReactNode {
     const { coords, boardList } = this.state;
-    const { boardLabel, selected, portProtocol, tooltip } = boardList.labels;
+    const { selected, portProtocol, tooltip } = boardList.labels;
+    const boardLabel = stripUrl(boardList.labels.boardLabel);
     const protocolIcon = portProtocol
       ? iconNameFromProtocol(portProtocol)
       : null;
