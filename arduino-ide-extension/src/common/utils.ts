@@ -39,6 +39,16 @@ export function stringToUint8Array(text: string): Uint8Array {
   return Uint8Array.from(text, (char) => char.charCodeAt(0));
 }
 
+export function stripUrl(label: string): string {
+  const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/;
+  const match = label.match(urlRegex);
+  if (match && match.index !== undefined) {
+    const text = label.substring(0, match.index);
+    return `${text}`;
+  }
+  return label;
+}
+
 export function poolWhile(
   whileCondition: () => boolean,
   intervalMs: number,

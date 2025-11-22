@@ -19,6 +19,7 @@ import {
   serializePlatformIdentifier,
 } from '../../common/protocol';
 import type { BoardList } from '../../common/protocol/board-list';
+import { stripUrl } from '../../common/utils';
 import { BoardsListWidget } from '../boards/boards-list-widget';
 import { BoardsDataStore } from '../boards/boards-data-store';
 import { BoardsServiceProvider } from '../boards/boards-service-provider';
@@ -299,7 +300,7 @@ SN: ${SN}
             // Board menu
             const menuAction = {
               commandId: id,
-              label: name,
+              label: stripUrl(name),
               order: String(index).padStart(4), // pads with leading zeros for alphanumeric sort where order is 1, 2, 11, and NOT 1, 11, 2
             };
             this.commandRegistry.registerCommand(command, handler);
