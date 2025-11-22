@@ -142,7 +142,7 @@ SN: ${SN}
       '1_boards',
     ];
     const { selectedBoard, selectedPort } = boardList.boardsConfig;
-    const boardsSubmenuLabel = selectedBoard?.name;
+    const boardsSubmenuLabel = selectedBoard?.name ? stripUrl(selectedBoard.name) : undefined;
     // Note: The submenu order starts from `100` because `Auto Format`, `Serial Monitor`, etc starts from `0` index.
     // The board specific items, and the rest, have order with `z`. We needed something between `0` and `z` with natural-order.
     this.menuModelRegistry.registerSubmenu(

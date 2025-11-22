@@ -11,21 +11,11 @@ import ReactDOM from '@theia/core/shared/react-dom';
 import classNames from 'classnames';
 import { boardIdentifierLabel, Port } from '../../common/protocol';
 import { BoardListItemUI } from '../../common/protocol/board-list';
-import { assertUnreachable } from '../../common/utils';
+import { assertUnreachable, stripUrl } from '../../common/utils';
 import type {
   BoardListUI,
   BoardsServiceProvider,
 } from './boards-service-provider';
-
-function stripUrl(label: string): string {
-  const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/;
-  const match = label.match(urlRegex);
-  if (match && match.index !== undefined) {
-    const text = label.substring(0, match.index);
-    return `${text}`;
-  }
-  return label;
-}
 
 export interface BoardsDropDownListCoords {
   readonly top: number;
@@ -134,7 +124,8 @@ export class BoardListDropDown extends React.Component<BoardsDropDown.Props> {
     item: BoardListItemUI;
     selected: boolean;
   }): React.ReactNode {
-    const { boardLabel, portLabel, portProtocol, tooltip } = item.labels;
+    const { portLabel, portProtocol, tooltip } = item.labels;
+    const boardLabel = stripUrl(item.labels.boardLabel);
     const port = item.port;
     const onKeyUp = (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
