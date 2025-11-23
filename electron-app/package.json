@@ -92,7 +92,7 @@
     },
     "backend": {
       "config": {
-        "configDirName": ".arduinoIDE",
+        "configDirName": ".ptsolnsIDE",
         "singleInstance": true
       }
     },

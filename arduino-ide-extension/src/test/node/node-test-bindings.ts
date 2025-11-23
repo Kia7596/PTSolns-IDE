@@ -287,8 +287,8 @@ export async function createCliConfig(
   configOverrides: Partial<DefaultCliConfig> = {}
 ): Promise<DefaultCliConfig> {
   const directories = {
-    data: join(configDirPath, 'data', 'Arduino15'),
-    downloads: join(configDirPath, 'data', 'Arduino15', 'staging'),
+    data: join(configDirPath, 'data', 'PTSolns15'),
+    downloads: join(configDirPath, 'data', 'PTSolns15', 'staging'),
     user: join(configDirPath, 'user', 'Arduino'),
   };
   for (const directoryPath of Object.values(directories)) {

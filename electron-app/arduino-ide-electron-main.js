@@ -11,10 +11,10 @@ if (config.buildDate) {
     __dirname,
     'plugins'
   )}`;
-  // `plugins` folder inside the `~/.arduinoIDE` folder. This is for manually installed VS Code extensions. For example, custom themes.
+  // `plugins` folder inside the `~/.ptsolnsIDE` folder. This is for manually installed VS Code extensions. For example, custom themes.
   process.env.THEIA_PLUGINS = [
     process.env.THEIA_PLUGINS,
-    `local-dir:${path.resolve(os.homedir(), '.arduinoIDE', 'plugins')}`,
+    `local-dir:${path.resolve(os.homedir(), '.ptsolnsIDE', 'plugins')}`,
   ]
     .filter(Boolean)
     .join(',');
