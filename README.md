@@ -1,8 +1,5 @@
-<img src="/Logo/PTSolns IDE Logo Partial with Slogan.jpg" height="150" align="right" />
-
-<link rel="icon" type="image/x-icon" href="/Logo/favicon.ico">
-
 # PTSolns IDE
+<img src="/Logo/PTSolns IDE Logo Partial with Slogan.jpg" height="150" align="right" />
 
 This repository contains the source code of the _PTSolns IDE_. Our goal in developing and provding _PTSolns IDE_:
 
@@ -21,7 +18,3 @@ _PTSolns IDE_ comes with a large collection of example sketches, is compatible w
 ## Download
 
 Download the latest release here: [_PTSolns IDE_](https://ptsolns.com/ide).
-
-## License
-
-The code contained in this repository and the executable distributions are licensed under the terms of the GNU AGPLv3. The executable distributions contain third-party code licensed under other compatible licenses such as GPLv2, MIT and BSD-3.
