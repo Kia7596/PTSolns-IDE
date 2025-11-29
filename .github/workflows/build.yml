@@ -635,6 +635,22 @@ jobs:
           path: ${{ env.ARTIFACTS_FOLDER }}
           pattern: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}*
 
+      - name: Copy stable channel files to latest
+        working-directory: ${{ env.ARTIFACTS_FOLDER }}
+        run: |
+          # Copy stable.yml to latest.yml
+          for file in stable*.yml; do
+            if [ -f "$file" ]; then
+              cp "$file" "${file/stable/latest}"
+            fi
+          done
+          # Copy stable.yml.blockmap to latest.yml.blockmap
+          for file in stable*.yml.blockmap; do
+            if [ -f "$file" ]; then
+              cp "$file" "${file/stable/latest}"
+            fi
+          done
+
       - name: Get Tag
         id: tag_name
         run: |
