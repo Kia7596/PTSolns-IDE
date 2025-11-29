@@ -178,7 +178,7 @@ jobs:
           ]]; then
             is_release="true"
             is_nightly="false"
-            channel_name="stable"
+            channel_name="latest"
           elif [[
             "${{ github.event_name }}" == "schedule" ||
             (
