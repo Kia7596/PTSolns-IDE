@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "electron-app",
-  "version": "0.0.5",
+  "version": "2.3.7",
   "license": "AGPL-3.0-or-later",
   "main": "./src-gen/backend/electron-main.js",
   "dependencies": {
@@ -192,10 +192,9 @@
     "afterSign": "scripts/notarize.js",
     "publish": [
       {
-        "provider": "github",
-        "owner": "PTSolns",
-        "repo": "PTSolns-IDE",
-        "channel": "stable"
+        "provider": "s3",
+        "bucket": "arduino-downloads-prod-beagle",
+        "path": "arduino-ide/nightly"
       }
     ]
   },
