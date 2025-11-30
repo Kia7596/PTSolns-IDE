@@ -27,7 +27,7 @@ exports.exec = exec;
  * Clones something from GitHub and builds it with [`Task`](https://taskfile.dev/).
  *
  * @param version {object} the version object.
- * @param destinationPath {string} the absolute path of the output binary. For example, `C:\\folder\\arduino-cli.exe` or `/path/to/arduino-language-server`
+ * @param destinationPath {string} the absolute path of the output binary. For example, `C:\\folder\\ptsolns-cli.exe` or `/path/to/arduino-language-server`
  * @param taskName {string} for the CLI logging . Can be `'CLI'` or `'language-server'`, etc.
  */
 exports.taskBuildFromGit = (version, destinationPath, taskName) => {
@@ -38,7 +38,7 @@ exports.taskBuildFromGit = (version, destinationPath, taskName) => {
  * Clones something from GitHub and builds it with `Golang`.
  *
  * @param version {object} the version object.
- * @param destinationPath {string} the absolute path of the output binary. For example, `C:\\folder\\arduino-cli.exe` or `/path/to/arduino-language-server`
+ * @param destinationPath {string} the absolute path of the output binary. For example, `C:\\folder\\ptsolns-cli.exe` or `/path/to/arduino-language-server`
  * @param taskName {string} for the CLI logging . Can be `'CLI'` or `'language-server'`, etc.
  */
 exports.goBuildFromGit = (version, destinationPath, taskName) => {

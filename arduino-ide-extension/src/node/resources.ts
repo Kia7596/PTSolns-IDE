@@ -10,7 +10,7 @@ const resourcesPath = path.join(
 const exe = process.platform === 'win32' ? '.exe' : '';
 
 // binaries
-export const arduinoCliPath = path.join(resourcesPath, 'arduino-cli' + exe);
+export const arduinoCliPath = path.join(resourcesPath, 'ptsolns-cli' + exe);
 export const arduinoFirmwareUploaderPath = path.join(
   resourcesPath,
   'arduino-fwuploader' + exe

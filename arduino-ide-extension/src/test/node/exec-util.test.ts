@@ -56,7 +56,7 @@ describe('exec-utils', () => {
     }
 
     const binaryNameToPathMapping: Record<string, string> = {
-      'arduino-cli': arduinoCliPath,
+      'ptsolns-cli': arduinoCliPath,
       'arduino-language-server': arduinoLanguageServerPath,
       'arduino-fwuploader': arduinoFirmwareUploaderPath,
       clangd: clangdPath,
@@ -102,9 +102,9 @@ describe('exec-utils', () => {
 
     const suites: GetExecPathTestSuite[] = [
       {
-        binaryName: 'arduino-cli',
+        binaryName: 'ptsolns-cli',
         flags: ['version'],
-        assertOutput: createTaskAssert('arduino-cli'),
+        assertOutput: createTaskAssert('ptsolns-cli'),
       },
       {
         binaryName: 'arduino-fwuploader',

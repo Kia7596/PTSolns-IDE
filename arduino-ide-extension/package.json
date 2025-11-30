@@ -171,8 +171,8 @@
     }
   ],
   "arduino": {
-    "arduino-cli": {
-      "version": "1.2.0"
+    "ptsolns-cli": {
+      "version": "0.0.3"
     },
     "arduino-fwuploader": {
       "version": "2.4.1"

@@ -66,8 +66,8 @@ export interface SketchesService {
 
   /**
    * This is the TS implementation of `SketchLoad` from the CLI and should be replaced with a gRPC call eventually.
-   * See: https://github.com/arduino/arduino-cli/issues/837
-   * Based on: https://github.com/arduino/arduino-cli/blob/eef3705c4afcba4317ec38b803d9ffce5dd59a28/arduino/builder/sketch.go#L100-L215
+   * See: https://github.com/arduino/ptsolns-cli/issues/837
+   * Based on: https://github.com/arduino/ptsolns-cli/blob/eef3705c4afcba4317ec38b803d9ffce5dd59a28/arduino/builder/sketch.go#L100-L215
    */
   loadSketch(uri: string): Promise<Sketch>;
 
@@ -134,19 +134,19 @@ export interface SketchesService {
 
   /**
    * Counterpart of the CLI's `genBuildPath` functionality.
-   * Based on https://github.com/arduino/arduino-cli/blob/550179eefd2d2bca299d50a4af9e9bfcfebec649/arduino/builder/builder.go#L30-L38
+   * Based on https://github.com/arduino/ptsolns-cli/blob/550179eefd2d2bca299d50a4af9e9bfcfebec649/arduino/builder/builder.go#L30-L38
    */
   getIdeTempFolderUri(sketch: Sketch): Promise<string>;
 
   /**
-   * This is the JS/TS re-implementation of [`GenBuildPath`](https://github.com/arduino/arduino-cli/blob/c0d4e4407d80aabad81142693513b3306759cfa6/arduino/sketch/sketch.go#L296-L306) of the CLI.
+   * This is the JS/TS re-implementation of [`GenBuildPath`](https://github.com/arduino/ptsolns-cli/blob/c0d4e4407d80aabad81142693513b3306759cfa6/arduino/sketch/sketch.go#L296-L306) of the CLI.
    * Pass in a sketch and get the build temporary folder filesystem path calculated from the main sketch file location. Can be multiple ones. This method does not check the existence of the sketch.
-   * Since CLI v1.1.0 the default sketch folder is the os user cache dir. See https://github.com/arduino/arduino-cli/pull/2673/commits/d2ffeb06ca6360a211d5aa7ddd11505212ffb1b9
+   * Since CLI v1.1.0 the default sketch folder is the os user cache dir. See https://github.com/arduino/ptsolns-cli/pull/2673/commits/d2ffeb06ca6360a211d5aa7ddd11505212ffb1b9
    *
    * The case sensitivity of the drive letter on Windows matters when the CLI calculates the MD5 hash of the temporary build folder.
    * IDE2 does not know and does not want to rely on how the CLI treats the paths: with lowercase or uppercase drive letters.
    * Hence, IDE2 has to provide multiple build paths on Windows. This hack will be obsolete when the CLI can provide error codes:
-   * https://github.com/arduino/arduino-cli/issues/1762.
+   * https://github.com/arduino/ptsolns-cli/issues/1762.
    */
   getBuildPath(sketch: SketchRef): Promise<string[]>;
 }
@@ -212,7 +212,7 @@ export namespace Sketch {
   );
   /**
    * `undefined` if the candidate sketch folder name is valid. Otherwise, the validation error message.
-   * Based on the [specs](https://arduino.github.io/arduino-cli/latest/sketch-specification/#sketch-folders-and-files).
+   * Based on the [specs](https://arduino.github.io/ptsolns-cli/latest/sketch-specification/#sketch-folders-and-files).
    */
   export function validateSketchFolderName(
     candidate: string

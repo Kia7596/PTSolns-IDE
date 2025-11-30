@@ -1,7 +1,7 @@
 import { RecursivePartial } from '@theia/core/lib/common/types';
 import { AdditionalUrls } from '../common/protocol';
 
-export const CLI_CONFIG = 'arduino-cli.yaml';
+export const CLI_CONFIG = 'ptsolns-cli.yaml';
 
 export interface BoardManager {
   readonly additional_urls: AdditionalUrls;
@@ -84,7 +84,7 @@ export interface Network {
   proxy?: string;
 }
 
-// Arduino CLI config scheme
+// PTSolns CLI config scheme
 export interface CliConfig {
   locale?: string;
   board_manager?: RecursivePartial<BoardManager>;

@@ -196,7 +196,7 @@ describe('core-client-provider', () => {
     rimrafSync(join(configDirPath, 'data'));
 
     // set an invalid URL so the CLI will try to download it
-    const cliConfigPath = join(configDirPath, 'arduino-cli.yaml');
+    const cliConfigPath = join(configDirPath, 'ptsolns-cli.yaml');
     const rawYaml = await fs.readFile(cliConfigPath, { encoding: 'utf8' });
     const config: DefaultCliConfig = load(rawYaml);
     expect(config.board_manager).to.be.undefined;
@@ -297,7 +297,7 @@ async function coreUpdateIndex(
   cliPath: string,
   configDirPath: string
 ): Promise<void> {
-  const cliConfigPath = join(configDirPath, 'arduino-cli.yaml');
+  const cliConfigPath = join(configDirPath, 'ptsolns-cli.yaml');
   await fs.access(cliConfigPath);
   const stdout = await spawnCommand(
     cliPath,

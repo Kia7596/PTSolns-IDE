@@ -18,7 +18,7 @@
       return undefined;
     }
 
-    const cli = arduino['arduino-cli'];
+    const cli = arduino['ptsolns-cli'];
     if (!cli) {
       return undefined;
     }
@@ -40,7 +40,7 @@
     'node',
     'resources'
   );
-  const cliName = `arduino-cli${platform === 'win32' ? '.exe' : ''}`;
+  const cliName = `ptsolns-cli${platform === 'win32' ? '.exe' : ''}`;
   const destinationPath = path.join(resourcesFolder, cliName);
 
   if (typeof version === 'string') {
@@ -74,17 +74,15 @@
       process.exit(1);
     }
     if (semver.valid(version)) {
-      const url = `https://downloads.arduino.cc/arduino-cli/arduino-cli_${version}_${suffix}`;
+      const url = `https://github.com/PTSolns/PTSolns-cli/releases/download/v${version}/ptsolns-cli_${version}_${suffix}`;
       console.log(
         `📦  Identified released version of the CLI. Downloading version ${version} from '${url}'`
       );
-      await downloader.downloadUnzipFile(url, destinationPath, 'arduino-cli');
+      await downloader.downloadUnzipFile(url, destinationPath, 'ptsolns-cli');
     } else if (moment(version, 'YYYYMMDD', true).isValid()) {
-      const url = `https://downloads.arduino.cc/arduino-cli/nightly/arduino-cli_nightly-${version}_${suffix}`;
-      console.log(
-        `🌙  Identified nightly version of the CLI. Downloading version ${version} from '${url}'`
-      );
-      await downloader.downloadUnzipFile(url, destinationPath, 'arduino-cli');
+      // Assuming nightly builds are not applicable for PTSolns-cli or handled differently
+      console.log(`🔥  Nightly version interpretation not implemented for PTSolns-cli: ${version}`);
+      process.exit(1);
     } else {
       console.log(`🔥  Could not interpret 'version': ${version}`);
       process.exit(1);

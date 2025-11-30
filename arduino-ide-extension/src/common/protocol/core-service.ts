@@ -64,7 +64,7 @@ export namespace CoreError {
     /**
      * The range of the error location source from the CLI output.
      */
-    readonly rangesInOutput: Range[]; // The same error might show up multiple times in the CLI output: https://github.com/arduino/arduino-cli/issues/1761
+    readonly rangesInOutput: Range[]; // The same error might show up multiple times in the CLI output: https://github.com/arduino/ptsolns-cli/issues/1761
   }
   export const Codes = {
     Verify: 4001,

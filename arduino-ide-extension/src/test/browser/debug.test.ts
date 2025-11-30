@@ -116,7 +116,7 @@ describe('debug', () => {
       );
     });
 
-    it('should resolve when no programmer is selected (arduino/arduino-cli#2540)', async () => {
+    it('should resolve when no programmer is selected (arduino/ptsolns-cli#2540)', async () => {
       const copyData: Mutable<BoardsDataStore.Data> = deepClone(data);
       delete copyData.selectedProgrammer;
       await doesNotReject(

@@ -18,7 +18,7 @@ async function run() {
   const version = await getVersion();
   /** @type {string|unknown} */
   const cliVersion = require('../../arduino-ide-extension/package.json')
-    .arduino['arduino-cli'].version;
+    .arduino['ptsolns-cli'].version;
   const artifactName = await getArtifactName(version);
   const args = [
     '--publish',
