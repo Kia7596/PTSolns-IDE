@@ -102,7 +102,7 @@
       }
     }
   },
-  "author": "Arduino SA & PTSolns",
+  "author": "PTSolns",
   "description": "PTSolns IDE",
   "build": {
     "appId": "com.PTSolns.IDE",

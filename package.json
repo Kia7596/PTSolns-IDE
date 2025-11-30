@@ -1,9 +1,9 @@
 {
   "name": "ptsolns-ide",
-  "version": "2.3.7",
+  "version": "0.0.8",
   "description": "PTSolns IDE",
   "repository": "https://github.com/PTSolns/PTSolns-IDE.git",
-  "author": "Arduino SA & PTSolns",
+  "author": "PTSolns",
   "license": "AGPL-3.0-or-later",
   "private": true,
   "engines": {
