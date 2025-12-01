@@ -7,8 +7,6 @@ This repository contains the source code of the _PTSolns IDE_. Our goal in devel
 - No sign-ups, No sign-ins, No cloud
 - Open-source & Community driven
 
-A simple IDE without any tracking, cloud or AI. 
-
 __Just write code and program your board.__
 
 _PTSolns IDE_ comes with a large collection of example sketches, is compatible with many common boards (AVR, RPi, Espressif, etc.) and over 8500 third-party custom libraries are available to be included.
