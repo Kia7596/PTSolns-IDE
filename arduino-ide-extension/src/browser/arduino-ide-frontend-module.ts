@@ -183,7 +183,7 @@ import { Debug, DebugDisabledStatusMessageSource } from './contributions/debug';
 import { Sketchbook } from './contributions/sketchbook';
 import { DebugFrontendApplicationContribution } from './theia/debug/debug-frontend-application-contribution';
 import { DebugFrontendApplicationContribution as TheiaDebugFrontendApplicationContribution } from '@theia/debug/lib/browser/debug-frontend-application-contribution';
-import { BoardSelection } from './contributions/board-selection';
+// import { BoardSelection } from './contributions/board-selection';
 import { OpenRecentSketch } from './contributions/open-recent-sketch';
 import { Help } from './contributions/help';
 import { bindArduinoPreferences } from './arduino-preferences';
@@ -718,7 +718,7 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
   Contribution.configure(bind, Sketchbook);
   Contribution.configure(bind, UploadFirmware);
   Contribution.configure(bind, UploadCertificate);
-  Contribution.configure(bind, BoardSelection);
+//   Contribution.configure(bind, BoardSelection);
   Contribution.configure(bind, OpenRecentSketch);
   Contribution.configure(bind, Help);
   Contribution.configure(bind, AddFile);
