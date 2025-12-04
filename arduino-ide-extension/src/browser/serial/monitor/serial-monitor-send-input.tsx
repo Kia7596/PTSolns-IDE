@@ -3,6 +3,7 @@ import { Key, KeyCode } from '@theia/core/lib/browser/keys';
 import { Board } from '../../../common/protocol/boards-service';
 import { DisposableCollection, nls } from '@theia/core/lib/common';
 import { BoardsServiceProvider } from '../../boards/boards-service-provider';
+import { stripUrl } from '../../../common/utils';
 import { MonitorModel } from '../../monitor-model';
 import { Unknown } from '../../../common/nls';
 import {
@@ -178,14 +179,14 @@ export class SerialMonitorSendInput extends React.Component<
       return nls.localize(
         'arduino/serial/connecting',
         "Connecting to '{0}' on '{1}'...",
-        boardLabel,
+        stripUrl(boardLabel),
         portLabel
       );
     }
     return nls.localize(
       'arduino/serial/message',
       "Message (Enter to send message to '{0}' on '{1}')",
-      boardLabel,
+      stripUrl(boardLabel),
       portLabel
     );
   }

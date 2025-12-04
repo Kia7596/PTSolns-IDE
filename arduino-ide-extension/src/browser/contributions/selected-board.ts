@@ -10,6 +10,7 @@ import type {
 } from '../../common/protocol/board-list';
 import { BoardsServiceProvider } from '../boards/boards-service-provider';
 import { Contribution } from './contribution';
+import { stripUrl } from '../../common/utils';
 
 @injectable()
 export class SelectedBoard extends Contribution {
@@ -35,7 +36,7 @@ export class SelectedBoard extends Contribution {
     this.statusBar.setElement('arduino-selected-board', {
       alignment: StatusBarAlignment.RIGHT,
       text: selectedBoard
-        ? `$(microchip) ${selectedBoard.name}`
+        ? `$(microchip) ${stripUrl(selectedBoard.name)}`
         : `$(close) ${nls.localize(
             'arduino/common/noBoardSelected',
             'No board selected'
