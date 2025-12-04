@@ -212,7 +212,7 @@ export namespace CheckForUpdates {
     export const CHECK_FOR_UPDATES: Command = Command.toLocalizedCommand(
       {
         id: 'arduino-check-for-updates',
-        label: 'Check for Arduino Updates',
+        label: 'Check for PTSolns Updates',
         category: 'Arduino',
       },
       'arduino/checkForUpdates/checkForUpdates'

@@ -525,7 +525,7 @@
     "versionWelcome": {
       "cancelButton": "Może później",
       "donateButton": "Wspomóż projekt teraz",
-      "donateMessage": "Arduino is committed to keeping software free and open-source for everyone. Your donation helps us develop new features, improve libraries, and support millions of users worldwide.",
+      "donateMessage": "PTSolns is committed to keeping software free and open-source for everyone. Your donation helps us develop new features, improve libraries, and support millions of users worldwide.",
       "donateMessage2": "Please consider supporting our work on the free open source PTSolns IDE.",
       "title": "Witaj w nowej wersji PTSolns IDE!",
       "titleWithVersion": "Witaj w Arduino IDE1{0}!"

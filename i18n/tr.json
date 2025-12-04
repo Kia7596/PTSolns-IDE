@@ -525,7 +525,7 @@
     "versionWelcome": {
       "cancelButton": "Belki sonra",
       "donateButton": "Şimdi bağış yap",
-      "donateMessage": "Arduino, yazılımı herkes için ücretsiz ve açık kaynaklı tutmaya adanmıştır. Bağışınız yeni özellikler geliştirmemize, kütüphaneleri daha iyi yapmamıza ve dünya çapındaki milyonlarca kullanıcıyı desteklememize yardım eder.",
+      "donateMessage": "PTSolns, yazılımı herkes için ücretsiz ve açık kaynaklı tutmaya adanmıştır. Bağışınız yeni özellikler geliştirmemize, kütüphaneleri daha iyi yapmamıza ve dünya çapındaki milyonlarca kullanıcıyı desteklememize yardım eder.",
       "donateMessage2": "Lütfen özgür açık kaynaklı PTSolns IDE üzerindeki çalışmalarımızı desteklemeyi gözden geçirin.",
       "title": "PTSolns IDE'nin yeni sürümüne hoş geldiniz!",
       "titleWithVersion": "Yeni PTSolns IDE'ye hoş geldin {0}!"

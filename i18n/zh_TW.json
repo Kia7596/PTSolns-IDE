@@ -525,7 +525,7 @@
     "versionWelcome": {
       "cancelButton": "讓我考慮一下",
       "donateButton": "現在捐",
-      "donateMessage": "Arduino 致力讓軟體保持自由並對大家開放程式碼，您的捐款可以幫助我們開發新功能、改善程式庫及對全球數百萬用戶的支持。",
+      "donateMessage": "PTSolns 致力讓軟體保持自由並對大家開放程式碼，您的捐款可以幫助我們開發新功能、改善程式庫及對全球數百萬用戶的支持。",
       "donateMessage2": "期盼您考慮支持我們對自由軟體 PTSolns IDE 所做的努力。",
       "title": "歡迎使用新版 PTSolns IDE !",
       "titleWithVersion": "歡迎使用新版 PTSolns IDE  {0} !"

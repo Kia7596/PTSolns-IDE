@@ -525,7 +525,7 @@
     "versionWelcome": {
       "cancelButton": "Forse in seguito",
       "donateButton": "Dona adesso",
-      "donateMessage": "Arduino si impegna a mantenere il software libero e open-source per tutti. La tua donazione ci aiuta a sviluppare nuove funzionalità, a migliorare le librerie e a supportare milioni di utenti in tutto il mondo.",
+      "donateMessage": "PTSolns si impegna a mantenere il software libero e open-source per tutti. La tua donazione ci aiuta a sviluppare nuove funzionalità, a migliorare le librerie e a supportare milioni di utenti in tutto il mondo.",
       "donateMessage2": "Considera l'opportunità di sostenere il nostro lavoro sull'IDE open source gratuito di Arduino.",
       "title": "Benvenuto nella nuova versione dell'IDE di Arduino!",
       "titleWithVersion": "Benvenuto nel nuovo IDE di Arduino! {0}!"
