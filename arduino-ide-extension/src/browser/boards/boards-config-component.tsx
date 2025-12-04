@@ -148,6 +148,7 @@ export class BoardsConfigComponent extends React.Component<
   }
 
   override componentDidMount(): void {
+    this.updateBoards();
     this.toDispose.pushAll([
       this.props.onAppStateDidChange(async (state) => {
         if (state === 'ready') {
