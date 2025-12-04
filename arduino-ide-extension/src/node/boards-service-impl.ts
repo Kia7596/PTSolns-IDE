@@ -49,6 +49,7 @@ import {
 import { CoreClientAware } from './core-client-provider';
 import { ExecuteWithProgress } from './grpc-progressible';
 import { ServiceError } from './service-error';
+import { stripUrl } from '../common/utils';
 
 @injectable()
 export class BoardsServiceImpl
@@ -604,7 +605,7 @@ function createBoardsPackage(
       'arduino/component/boardsIncluded',
       'Boards included in this package:'
     ),
-    description: boardsList.map(({ name }) => name).join(', '),
+    description: boardsList.map(({ name }) => stripUrl(name)).join(', '),
     boards: boardsList,
     types: typesList,
     moreInfoLink: website,
