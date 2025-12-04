@@ -23,27 +23,34 @@ interface BoardLabelProps {
 }
 
 const BoardLabel: React.FC<BoardLabelProps> = ({ label, openUrl }) => {
-  const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/;
-  const match = label.match(urlRegex);
+  const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
 
-  if (match && match.index !== undefined) {
+  while ((match = urlRegex.exec(label)) !== null) {
     const text = match[1];
     const url = match[2];
-    const preText = label.substring(0, match.index);
-    const postText = label.substring(match.index + match[0].length);
+    const preText = label.substring(lastIndex, match.index);
 
-    return (
-      <>
-        {preText}
-        <a onClick={(e) => { e.stopPropagation(); openUrl(url); }}>
-          {text}
-        </a>
-        {postText}
-      </>
+    if (preText) {
+      parts.push(preText);
+    }
+
+    parts.push(
+      <a key={match.index} onClick={(e) => { e.stopPropagation(); openUrl(url); }} title={text} style={{ cursor: 'pointer' }}>
+        {text} <i className="fa fa-external-link" />
+      </a>
     );
+    lastIndex = match.index + match[0].length;
   }
 
-  return <>{label}</>;
+  const postText = label.substring(lastIndex);
+  if (postText) {
+    parts.push(postText);
+  }
+
+  return <>{parts}</>;
 };
 
 namespace BoardsConfigComponent {
