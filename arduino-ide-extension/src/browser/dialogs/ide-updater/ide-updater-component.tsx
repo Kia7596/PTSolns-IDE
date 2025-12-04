@@ -39,11 +39,11 @@ export const IDEUpdaterComponent = ({
     if (releaseNotes) {
       setChangelog(
         typeof releaseNotes === 'string'
-          ? releaseNotes
+          ? releaseNotes.replace(/\[.*?\]|<.*?>/g, '\n').replace(/\n\n+/g, '\n- ').replace(/^\n-/g, '# ').replace(/\n- $/, '')
           : releaseNotes.reduce(
               (acc, item) => (item.note ? (acc += `${item.note}\n\n`) : acc),
               ''
-            )
+            ).replace(/\[.*?\]|<.*?>/g, '\n').replace(/\n\n+/g, '\n- ').replace(/^\n-/g, '# ').replace(/\n- $/, '')
       );
     }
   }, [releaseNotes, changelog]);
