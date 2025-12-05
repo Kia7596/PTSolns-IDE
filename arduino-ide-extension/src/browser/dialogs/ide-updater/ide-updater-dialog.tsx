@@ -179,7 +179,7 @@ export class IDEUpdaterDialog extends ReactDialog<UpdateInfo | undefined> {
     );
     footerLink.classList.add('ide-updater-dialog--footer-link');
     footerLink.onclick = () =>
-      this.openExternal('https://www.arduino.cc/en/donate');
+      this.openExternal('https://ptsolns.com/pages/ptsolns-ide');
 
     const footerLinkIcon = document.createElement('span');
     footerLinkIcon.title = nls.localize(
@@ -212,7 +212,7 @@ export class IDEUpdaterDialog extends ReactDialog<UpdateInfo | undefined> {
   }
 
   private openDownloadPage(): void {
-    this.openExternal('https://www.arduino.cc/en/software');
+    this.openExternal('https://ptsolns.com/pages/ptsolns-ide');
     this.close();
   }
 
