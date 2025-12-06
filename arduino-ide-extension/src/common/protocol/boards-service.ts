@@ -4,8 +4,6 @@ import type { MaybePromise } from '@theia/core/lib/common/types';
 import type URI from '@theia/core/lib/common/uri';
 import {
   All,
-  Contributed,
-  Partner,
   Type as TypeLabel,
   Updatable,
 } from '../nls';
@@ -113,11 +111,7 @@ export namespace BoardSearch {
   export const TypeLiterals = [
     'All',
     'Updatable',
-    'Arduino',
-    'Contributed',
-    'Arduino Certified',
-    'Partner',
-    'Arduino@Heart',
+    'PTSolns',
   ] as const;
   export type Type = (typeof TypeLiterals)[number];
   export namespace Type {
@@ -128,14 +122,7 @@ export namespace BoardSearch {
   export const TypeLabels: Record<Type, string> = {
     All: All,
     Updatable: Updatable,
-    Arduino: 'Arduino',
-    Contributed: Contributed,
-    'Arduino Certified': nls.localize(
-      'arduino/boardsType/arduinoCertified',
-      'Arduino Certified'
-    ),
-    Partner: Partner,
-    'Arduino@Heart': 'Arduino@Heart',
+    PTSolns: 'PTSolns',
   };
   export const PropertyLabels: Record<
     keyof Omit<BoardSearch, 'query'>,

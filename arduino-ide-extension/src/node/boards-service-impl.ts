@@ -424,12 +424,8 @@ export class BoardsServiceImpl
     switch (options.type) {
       case 'Updatable':
         return Installable.Updateable;
-      case 'Arduino':
-      case 'Partner':
-      case 'Arduino@Heart':
-      case 'Contributed':
-      case 'Arduino Certified':
-        return ({ types }: BoardsPackage) => !!types && types?.includes(type);
+      case 'PTSolns':
+        return (item) => item.types.includes('PTSolns');
       default:
         throw new Error(`Unhandled type: ${options.type}`);
     }
@@ -568,8 +564,8 @@ function isMissingPlatformError(error: unknown): boolean {
 
 function boardsPackageSortGroup(boardsPackage: BoardsPackage): SortGroup {
   const types: string[] = [];
-  if (boardsPackage.types.includes('Arduino')) {
-    types.push('Arduino');
+  if (boardsPackage.types.includes('PTSolns')) {
+    types.push('PTSolns');
   }
   if (boardsPackage.deprecated) {
     types.push('Retired');
@@ -607,7 +603,7 @@ function createBoardsPackage(
     ),
     description: boardsList.map(({ name }) => stripUrl(name)).join(', '),
     boards: boardsList,
-    types: typesList,
+    types: [...typesList, ...(maintainer === 'PTSolns' ? ['PTSolns'] : [])],
     moreInfoLink: website,
     author: maintainer,
     deprecated,

@@ -62,15 +62,15 @@ describe('boards-service-impl', () => {
       );
     });
 
-    it("should boost a result when 'types' includes 'arduino', and lower the score if deprecated", async () => {
+    it("should boost a result when 'types' includes 'ptsolns', and lower the score if deprecated", async () => {
       const result = await boardService.search({});
       const arduinoIndexes: number[] = [];
       const otherIndexes: number[] = [];
       const deprecatedArduinoIndexes: number[] = [];
       const deprecatedOtherIndexes: number[] = [];
-      const arduino: BoardSearch.Type = 'Arduino';
+      const ptsolns: BoardSearch.Type = 'PTSolns';
       result.forEach((platform, index) => {
-        if (platform.types.includes(arduino)) {
+        if (platform.types.includes(ptsolns)) {
           if (platform.deprecated) {
             deprecatedArduinoIndexes.push(index);
           } else {
