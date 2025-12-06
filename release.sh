@@ -26,7 +26,7 @@ sed -i "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" elec
 sleep 1
 git add .
 git commit -m "v$NEW_VERSION"
-git tag -a "$NEW_VERSION"
+git tag -a "$NEW_VERSION" -m "$NEW_VERSION"
 git push origin "$NEW_VERSION"
 
 echo "Release process completed successfully for version: $NEW_VERSION"
