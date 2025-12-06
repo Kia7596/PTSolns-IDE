@@ -320,7 +320,7 @@ export class LibraryExamples extends Examples {
         await this.coreService.refresh();
       }
       const fqbn = board?.fqbn;
-      const name = board?.name;
+    //   const name = board?.name;
       // Shows all examples when no board is selected, or the platform of the currently selected board is not installed.
       const { user, current, any } = await this.examplesService.installed({
         fqbn,
@@ -331,16 +331,6 @@ export class LibraryExamples extends Examples {
             'arduino/examples/customLibrary',
             'Examples from Custom Libraries'
           )
-        );
-      }
-      if (name && fqbn && current.length) {
-        (current as any).unshift(
-          nls.localize('arduino/examples/for', 'Examples for {0}', name)
-        );
-      }
-      if (any.length) {
-        (any as any).unshift(
-          nls.localize('arduino/examples/forAny', 'Examples for any board')
         );
       }
       for (const container of user) {
