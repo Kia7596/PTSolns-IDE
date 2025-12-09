@@ -33,16 +33,16 @@ export class Help extends Contribution {
         execute: () => open(url),
       };
     registry.registerCommand(
-      Help.Commands.GETTING_STARTED,
-      createOpenHandler('https://www.arduino.cc/en/Guide')
+      Help.Commands.PTSOLNS_GPT,
+      createOpenHandler('https://chatgpt.com/g/g-68faecd6f4b4819193f1591c861f2d14-ptsolns-ide-gpt')
     );
     registry.registerCommand(
-      Help.Commands.VISIT_ARDUINO,
+      Help.Commands.VISIT_PTSOLNS,
       createOpenHandler('https://PTSolns.com/')
     );
     registry.registerCommand(
       Help.Commands.PRIVACY_POLICY,
-      createOpenHandler('https://www.arduino.cc/en/privacy-policy')
+      createOpenHandler('https://ptsolns.com/pages/privacy-policy')
     );
   }
 
@@ -52,15 +52,11 @@ export class Help extends Contribution {
     });
 
     registry.registerMenuAction(ArduinoMenus.HELP__MAIN_GROUP, {
-      commandId: Help.Commands.GETTING_STARTED.id,
+      commandId: Help.Commands.PTSOLNS_GPT.id,
       order: '0',
     });
     registry.registerMenuAction(ArduinoMenus.HELP__FIND_GROUP, {
-      commandId: Help.Commands.FAQ.id,
-      order: '5',
-    });
-    registry.registerMenuAction(ArduinoMenus.HELP__FIND_GROUP, {
-      commandId: Help.Commands.VISIT_ARDUINO.id,
+      commandId: Help.Commands.VISIT_PTSOLNS.id,
       order: '6',
     });
     registry.registerMenuAction(ArduinoMenus.HELP__FIND_GROUP, {
@@ -77,17 +73,12 @@ export class Help extends Contribution {
 
 export namespace Help {
   export namespace Commands {
-    export const GETTING_STARTED: Command = {
+    export const PTSOLNS_GPT: Command = {
       id: 'arduino-getting-started',
-      label: nls.localize('arduino/help/gettingStarted', 'Getting Started'),
+      label: nls.localize('arduino/help/ptsolnsGpt', 'PTSolns IDE GPT'),
       category: 'Arduino',
     };
-    export const FAQ: Command = {
-      id: 'arduino-faq',
-      label: nls.localize('arduino/help/faq', 'Frequently Asked Questions'),
-      category: 'Arduino',
-    };
-    export const VISIT_ARDUINO: Command = {
+    export const VISIT_PTSOLNS: Command = {
       id: 'arduino-visit-arduino',
       label: nls.localize('arduino/help/visit', 'Visit PTSolns.com'),
       category: 'Arduino',
