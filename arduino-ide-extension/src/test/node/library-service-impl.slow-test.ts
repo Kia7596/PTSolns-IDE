@@ -30,17 +30,12 @@ describe('library-service-impl', () => {
       const otherIndexes: number[] = [];
       // Special `"types": ["Arduino", "Retired"]` case handling: https://github.com/arduino/arduino-ide/issues/1106#issuecomment-1419392742
       const retiredIndexes: number[] = [];
-      const arduino: LibrarySearch.Type = 'Arduino';
-      const retired: LibrarySearch.Type = 'Retired';
+      const ptsolns: LibrarySearch.Type = 'PTSolns';
       result
         .filter((library) => library.types.length === 1)
         .forEach((library, index) => {
-          if (library.types.includes(arduino)) {
-            if (library.types.includes(retired)) {
-              retiredIndexes.push(index);
-            } else {
-              arduinoIndexes.push(index);
-            }
+          if (library.types.includes(ptsolns)) {
+            arduinoIndexes.push(index);
           } else {
             otherIndexes.push(index);
           }

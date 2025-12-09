@@ -132,12 +132,8 @@ export class LibraryServiceImpl
         return Installable.Installed;
       case 'Updatable':
         return Installable.Updateable;
-      case 'Arduino':
-      case 'Partner':
-      case 'Recommended':
-      case 'Contributed':
-      case 'Retired':
-        return ({ types }: LibraryPackage) => !!types && types.includes(type);
+      case 'PTSolns':
+        return (item: LibraryPackage) => item.author === 'PTSolns';
       default:
         throw new Error(`Unhandled type: ${options.type}`);
     }
@@ -479,11 +475,8 @@ function toLibrary(
 
 // Libraries do not have a deprecated property. The deprecated information is inferred if 'Retired' is in 'types'
 function librarySortGroup(library: LibraryPackage): SortGroup {
-  const types: string[] = [];
-  for (const type of ['Arduino', 'Retired']) {
-    if (library.types.includes(type)) {
-      types.push(type);
-    }
+  if (library.types.includes('PTSolns')) {
+    return 'PTSolns' as SortGroup;
   }
-  return types.join('-') as SortGroup;
+  return '' as SortGroup; // Or a default sort group if needed
 }

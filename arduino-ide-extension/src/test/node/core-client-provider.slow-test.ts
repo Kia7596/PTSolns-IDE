@@ -246,7 +246,7 @@ async function assertFunctionalCli(
 
   const libraries = await libraryService.search({
     query: 'cmaglie',
-    type: 'Contributed',
+    type: 'PTSolns',
   });
   expect(libraries.length).to.be.greaterThanOrEqual(1);
   expect(

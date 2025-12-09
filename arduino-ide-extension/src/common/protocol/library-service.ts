@@ -4,10 +4,6 @@ import { ArduinoComponent } from './arduino-component';
 import { nls } from '@theia/core/lib/common/nls';
 import {
   All,
-  Contributed,
-  Partner,
-  Recommended,
-  Retired,
   Type as TypeLabel,
   Updatable,
 } from '../nls';
@@ -61,11 +57,7 @@ export namespace LibrarySearch {
     'All',
     'Updatable',
     'Installed',
-    'Arduino',
-    'Partner',
-    'Recommended',
-    'Contributed',
-    'Retired',
+    'PTSolns',
   ] as const;
   export type Type = (typeof TypeLiterals)[number];
   export namespace Type {
@@ -77,11 +69,7 @@ export namespace LibrarySearch {
     All: All,
     Updatable: Updatable,
     Installed: nls.localize('arduino/libraryType/installed', 'Installed'),
-    Arduino: 'Arduino',
-    Partner: Partner,
-    Recommended: Recommended,
-    Contributed: Contributed,
-    Retired: Retired,
+    PTSolns: 'PTSolns',
   };
   export const TopicLiterals = [
     'All',
