@@ -141,14 +141,16 @@ export class BoardsServiceImpl
           })
       );
 
-    const programmers = listResp.getProgrammersList().map(
-      (p) =>
-        <Programmer>{
-          id: p.getId(),
-          name: p.getName(),
-          platform: p.getPlatform(),
-        }
-    );
+    const programmers = listResp.getProgrammersList()
+      .filter(p => p.getName() === 'AVRISP mkII' || p.getName() === 'Arduino as ISP')
+      .map(
+        (p) =>
+          <Programmer>{
+            id: p.getId(),
+            name: p.getName(),
+            platform: p.getPlatform(),
+          }
+      );
     const defaultProgrammerId = detailsResp.getDefaultProgrammerId();
 
     let VID = 'N/A';
