@@ -322,7 +322,7 @@ export class LibraryExamples extends Examples {
       const fqbn = board?.fqbn;
     //   const name = board?.name;
       // Shows all examples when no board is selected, or the platform of the currently selected board is not installed.
-      const { user, current, any } = await this.examplesService.installed({
+      const { user, any } = await this.examplesService.installed({
         fqbn,
       });
       if (user.length) {
@@ -337,13 +337,6 @@ export class LibraryExamples extends Examples {
         this.registerRecursively(
           container,
           ArduinoMenus.EXAMPLES__USER_LIBS_GROUP,
-          this.toDispose
-        );
-      }
-      for (const container of current) {
-        this.registerRecursively(
-          container,
-          ArduinoMenus.EXAMPLES__CURRENT_BOARD_GROUP,
           this.toDispose
         );
       }
