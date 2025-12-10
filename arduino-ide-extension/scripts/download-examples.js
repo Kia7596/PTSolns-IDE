@@ -1,7 +1,7 @@
 // @ts-check
 
 // The version to use.
-const version = '1.10.2';
+// const version = '1.10.2';
 
 (async () => {
   const os = require('node:os');
@@ -36,15 +36,15 @@ const version = '1.10.2';
 
   exec(
     'git',
-    ['clone', 'https://github.com/arduino/arduino-examples.git', repository],
+    ['clone', 'https://github.com/PTSolns/PTSolns-IDE-Examples.git', repository],
     { logStdout: true }
   );
 
-  exec(
-    'git',
-    ['-C', repository, 'checkout', `tags/${version}`, '-b', version],
-    { logStdout: true }
-  );
+//   exec(
+//     'git',
+//     ['-C', repository, 'checkout', `tags/${version}`, '-b', version],
+//     { logStdout: true }
+//   );
 
   mkdirSync(destination, { recursive: true });
   const examplesPath = path.join(repository, 'examples');
