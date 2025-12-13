@@ -39,7 +39,7 @@ export class VersionWelcomeDialog extends ReactDialog<void> {
         <p>
           {nls.localize(
             'arduino/versionWelcome/donateMessage',
-            'PTSolns is committed to keeping software free and open-source. Your donation helps us develop new features, improve libraries, and support users worldwide. Thank you!'
+            'PTSolns is committed to keeping software free and open-source. Your sponsorship helps us develop new features, improve libraries, and support users worldwide. Thank you!'
           )}
         </p>
         <p className="bold">
@@ -66,7 +66,7 @@ export class VersionWelcomeDialog extends ReactDialog<void> {
     this.controlPanel.appendChild(cancelButton);
 
     const donateButton = this.createButton(
-      nls.localize('arduino/versionWelcome/donateButton', 'Donate now')
+      nls.localize('arduino/versionWelcome/donateButton', 'Sponsor now')
     );
     this.addAction(donateButton, this.onDonateButtonClick.bind(this), 'click');
     this.controlPanel.appendChild(donateButton);
@@ -79,7 +79,7 @@ export class VersionWelcomeDialog extends ReactDialog<void> {
   }
 
   private readonly openDonationPage = () => {
-    const url = 'https://ptsolns.com/pages/ptsolns-ide';
+    const url = 'https://ptsolns.com/ide#Sponsor';
     this.windowService.openNewWindow(url, { external: true });
   };
 

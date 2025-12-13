@@ -175,11 +175,11 @@ export class IDEUpdaterDialog extends ReactDialog<UpdateInfo | undefined> {
 
     const footerLink = document.createElement('a');
     footerLink.innerText = sanitize(
-      nls.localize('arduino/ide-updater/donateLinkText', 'donate to support us')
+      nls.localize('arduino/ide-updater/donateLinkText', 'Sponsor to support us')
     );
     footerLink.classList.add('ide-updater-dialog--footer-link');
     footerLink.onclick = () =>
-      this.openExternal('https://ptsolns.com/pages/ptsolns-ide');
+      this.openExternal('https://ptsolns.com/ide#Sponsor');
 
     const footerLinkIcon = document.createElement('span');
     footerLinkIcon.title = nls.localize(
