@@ -94,6 +94,11 @@ export namespace ArduinoMenus {
     ...TOOLS,
     '1_firmware_uploader',
   ];
+  // `CH340G Driver Installation`
+  export const TOOLS__CH340G_DRIVER_GROUP = [
+    ...TOOLS,
+    '1_ch340g_driver',
+  ];
   // `Board`, `Port`, and `Get Board Info`.
   export const TOOLS__BOARD_SELECTION_GROUP = [...TOOLS, '2_board_selection'];
   // Core settings, such as `Processor` and `Programmers` for the board and `Burn Bootloader`
