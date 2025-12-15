@@ -1,0 +1,1 @@
+yarn install ; yarn build  ; yarn --cwd electron-app rebuild ; yarn --cwd electron-app build ; yarn --cwd electron-app package ; & '.\electron-app\dist\win-unpacked\PTSolns IDE.exe'
