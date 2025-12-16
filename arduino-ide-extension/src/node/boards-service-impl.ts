@@ -82,38 +82,66 @@ export class BoardsServiceImpl
   }
 
   private ensurePTSolnsBoardInstalledOnStartup(): void {
-      process.nextTick(() => {
-          this.installBoards('PTSolnsAVR:avr', 'PTSolnsAVR').catch((error) => {
-              console.error('Error during PTSolns board installation on startup:', error);
-          });
-          this.installBoards('PTSolnsESP32:esp32', 'PTSolnsESP32').catch((error) => {
-              console.error('Error during PTSolns board installation on startup:', error);
-          });
-      });
+    // Use process.nextTick to ensure this runs after initial setup
+    process.nextTick(async () => {
+      try {
+        // Wait for the core client to be ready
+        await this.coreClient;
+        console.info('Core client is ready. Proceeding with PTSolns board installation check.');
+
+        // Poll for the existence of PTSolns boards and install them if found
+        await this.pollForAndInstallPTSolnsBoards('PTSolnsAVR:avr', 'PTSolnsAVR', 'AVR');
+        await this.pollForAndInstallPTSolnsBoards('PTSolnsESP32:esp32', 'PTSolnsESP32', 'ESP32');
+
+        console.info('PTSolns boards and drivers installation check completed.');
+      } catch (error) {
+        // Log the error but don't re-throw to prevent startup blocking.
+        console.error('Error during PTSolns board installation on startup:', error);
+      }
+    });
   }
 
-  private async installBoards(packageId = '', packageNameQuery = ''): Promise<void> {
+  private async pollForAndInstallPTSolnsBoards(packageId: string, packageNameQuery: string, boardType: string): Promise<void> {
+    const maxRetries = 5;
+    const retryDelay = 5000;
+
+    for (let i = 0; i < maxRetries; i++) {
       try {
-          const installed = await this.getInstalledPlatforms();
-          let ptsolnsPackage = installed.find((p: BoardsPackage) => p.id === packageId); // Explicitly type 'p' as BoardsPackage
+        console.info(`Attempt ${i + 1}/${maxRetries}: Checking for PTSolns ${boardType} boards.`);
 
-          if (! ptsolnsPackage) {
-              console.info(`PTSolns package (${packageId}) not found among installed. Searching...`);
-              const allPackages = await this.search({ query: packageNameQuery });
-              const foundPtsolnsPackage = allPackages.find((p: BoardsPackage) => p.id === packageId); // Explicitly type 'p' as BoardsPackage
+        // First, check if it's already installed
+        const installedPlatforms = await this.getInstalledPlatforms();
+        let foundPackage = installedPlatforms.find((p: BoardsPackage) => p.id === packageId);
 
-              if (foundPtsolnsPackage) {
-                  console.info(`Found PTSolns package (${packageId}) via search. Installing...`);
-                  await this.install({ item: foundPtsolnsPackage });
-              } else {
-                  throw new Error(`PTSolnsAVR board package not found.`);
-              }
-          }
-          console.info('PTSolns boards and drivers reinstallation process initiated successfully.');
+        if (!foundPackage) {
+          // If not installed, search for it
+          console.info(`Attempt ${i + 1}/${maxRetries}: PTSolns ${boardType} package (${packageId}) not found among installed. Searching...`);
+          const searchResults = await this.search({ query: packageNameQuery });
+          foundPackage = searchResults.find((p: BoardsPackage) => p.id === packageId);
+        }
+
+        if (foundPackage) {
+          console.info(`Attempt ${i + 1}/${maxRetries}: Found PTSolns ${boardType} package (${packageId}). Installing...`);
+          await this.install({ item: foundPackage });
+          console.info(`Attempt ${i + 1}/${maxRetries}: PTSolns ${boardType} package installation initiated for ${packageId}.`);
+          return; // Success, exit the function.
+        } else {
+          console.warn(`Attempt ${i + 1}/${maxRetries}: PTSolns ${boardType} package (${packageId}) not found after search.`);
+        }
       } catch (error) {
-          // Log the error but don't re-throw to prevent startup blocking.
-          console.error('Error during PTSolns boards and drivers reinstallation:', error);
+        console.error(`Attempt ${i + 1}/${maxRetries}: Error checking/installing PTSolns ${boardType} boards:`, error);
+        // Continue to retry if an error occurs during search/install
       }
+
+      // If we are not on the last retry, wait before the next attempt
+      if (i < maxRetries - 1) {
+        console.info(`Waiting ${retryDelay}ms before retrying for PTSolns ${boardType} boards.`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
+    }
+
+    // If the loop completes without returning, it means the package was not found or installed after all retries.
+    console.error(`Failed to find or install PTSolns ${boardType} package (${packageId}) after ${maxRetries} attempts. The board index may not have updated correctly, or the package is unavailable.`);
   }
 
   async getDetectedPorts(): Promise<DetectedPorts> {
