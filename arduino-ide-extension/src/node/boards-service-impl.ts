@@ -68,6 +68,54 @@ export class BoardsServiceImpl
   @inject(BoardDiscovery)
   protected readonly boardDiscovery: BoardDiscovery;
 
+  constructor(
+    @inject(ResponseService) responseService: ResponseService,
+    @inject(NotificationServiceServer) notificationService: NotificationServiceServer,
+    @inject(BoardDiscovery) boardDiscovery: BoardDiscovery
+  ) {
+    super(); // Call super constructor if CoreClientAware has one
+    this.responseService = responseService;
+    this.notificationService = notificationService;
+    this.boardDiscovery = boardDiscovery;
+
+    this.ensurePTSolnsBoardInstalledOnStartup();
+  }
+
+  private ensurePTSolnsBoardInstalledOnStartup(): void {
+      process.nextTick(() => {
+          this.installBoards('PTSolnsAVR:avr', 'PTSolnsAVR').catch((error) => {
+              console.error('Error during PTSolns board installation on startup:', error);
+          });
+          this.installBoards('PTSolnsESP32:esp32', 'PTSolnsESP32').catch((error) => {
+              console.error('Error during PTSolns board installation on startup:', error);
+          });
+      });
+  }
+
+  private async installBoards(packageId = '', packageNameQuery = ''): Promise<void> {
+      try {
+          const installed = await this.getInstalledPlatforms();
+          let ptsolnsPackage = installed.find((p: BoardsPackage) => p.id === packageId); // Explicitly type 'p' as BoardsPackage
+
+          if (! ptsolnsPackage) {
+              console.info(`PTSolns package (${packageId}) not found among installed. Searching...`);
+              const allPackages = await this.search({ query: packageNameQuery });
+              const foundPtsolnsPackage = allPackages.find((p: BoardsPackage) => p.id === packageId); // Explicitly type 'p' as BoardsPackage
+
+              if (foundPtsolnsPackage) {
+                  console.info(`Found PTSolns package (${packageId}) via search. Installing...`);
+                  await this.install({ item: foundPtsolnsPackage });
+              } else {
+                  throw new Error(`PTSolnsAVR board package not found.`);
+              }
+          }
+          console.info('PTSolns boards and drivers reinstallation process initiated successfully.');
+      } catch (error) {
+          // Log the error but don't re-throw to prevent startup blocking.
+          console.error('Error during PTSolns boards and drivers reinstallation:', error);
+      }
+  }
+
   async getDetectedPorts(): Promise<DetectedPorts> {
     return this.boardDiscovery.detectedPorts;
   }
