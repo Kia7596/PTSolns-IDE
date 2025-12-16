@@ -56,6 +56,84 @@ export class LibraryServiceImpl
   @inject(NotificationServiceServer)
   protected readonly notificationServer: NotificationServiceServer;
 
+  constructor(
+    @inject(ResponseService) responseService: ResponseService,
+    @inject(BoardDiscovery) boardDiscovery: BoardDiscovery,
+    @inject(NotificationServiceServer) notificationServer: NotificationServiceServer
+  ) {
+    super();
+    this.responseService = responseService;
+    this.boardDiscovery = boardDiscovery;
+    this.notificationServer = notificationServer;
+    // Ensure this runs after core client is ready
+    process.nextTick(async () => {
+      try {
+        await this.coreClient;
+        console.info('Core client is ready. Proceeding with PTSolns library installation check.');
+        await this.ensurePTSolnsLibrariesInstalledOnStartup();
+        console.info('PTSolns libraries installation check completed.');
+      } catch (error) {
+        console.error('Error during PTSolns library installation on startup:', error);
+      }
+    });
+  }
+
+  private async ensurePTSolnsLibrariesInstalledOnStartup(): Promise<void> {
+    const maxRetries = 5;
+    const retryDelay = 5000;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        console.info(`Attempt ${i + 1}/${maxRetries}: Fetching PTSolns library list.`);
+        const response = await fetch('https://raw.githubusercontent.com/PTSolns/PTSolns-IDE-Library-Registry/refs/heads/main/default_included.txt');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch library list: ${response.statusText}`);
+        }
+        const text = await response.text();
+        const libraryUrls = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
+        const installedLibraries = await this.list({}); // Get all installed libraries
+
+        for (const url of libraryUrls) {
+          const libraryNameMatch = url.match(/github\.com\/PTSolns\/([^\/]+)/);
+          if (libraryNameMatch && libraryNameMatch[1]) {
+            const libraryName = libraryNameMatch[1];
+            console.info(`Checking if library "${libraryName}" is installed...`);
+
+            const isInstalled = installedLibraries.some(lib => lib.name === libraryName);
+
+            if (!isInstalled) {
+              console.info(`Library "${libraryName}" not found. Searching for it...`);
+              const searchResults = await this.search({ query: libraryName });
+              const libraryToInstall = searchResults.find(lib => lib.name === libraryName);
+
+              if (libraryToInstall) {
+                console.info(`Found library "${libraryName}". Installing...`);
+                // Assuming we install the latest version by default
+                await this.install({ item: libraryToInstall, version: libraryToInstall.availableVersions[0] });
+                console.info(`Installation initiated for "${libraryName}".`);
+              } else {
+                console.warn(`Library "${libraryName}" not found in search results.`);
+              }
+            } else {
+              console.info(`Library "${libraryName}" is already installed.`);
+            }
+          }
+        }
+        // If we reached here, it means we successfully processed all URLs for this attempt.
+        return;
+      } catch (error) {
+        console.error(`Attempt ${i + 1}/${maxRetries}: Error processing PTSolns libraries:`, error);
+      }
+
+      if (i < maxRetries - 1) {
+        console.info(`Waiting ${retryDelay}ms before retrying PTSolns library check.`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
+    }
+    console.error(`Failed to process PTSolns libraries after ${maxRetries} attempts.`);
+  }
+
   @duration()
   async search(options: LibrarySearch): Promise<LibraryPackage[]> {
     const coreClient = await this.coreClient;
@@ -358,10 +436,11 @@ export class LibraryServiceImpl
       });
     });
 
-    const items = await this.search({});
-    const updated =
-      items.find((other) => LibraryPackage.equals(other, item)) || item;
-    this.notificationServer.notifyLibraryDidInstall({ item: updated });
+    // Re-fetch installed libraries to ensure the list is up-to-date
+    const updatedItems = await this.search({});
+    // Try to find the installed item by name to notify, otherwise use the original item
+    const updatedItem = updatedItems.find(other => other.name === item.name) || item;
+    this.notificationServer.notifyLibraryDidInstall({ item: updatedItem });
     console.info('<<< Library package installation done.', item);
   }
 
@@ -448,6 +527,17 @@ export class LibraryServiceImpl
   dispose(): void {
     this.logger.info('>>> Disposing library service...');
     this.logger.info('<<< Disposed library service.');
+  }
+
+  // Helper function to refresh the library list (e.g., after installation/uninstallation)
+  override async refresh(): Promise<void> {
+    const coreClient = await this.coreClient;
+    const { client, instance } = coreClient;
+    const req = new LibraryListRequest();
+    req.setInstance(instance);
+    await new Promise<void>((resolve, reject) => {
+      client.libraryList(req, (err) => (err ? reject(err) : resolve()));
+    });
   }
 }
 
