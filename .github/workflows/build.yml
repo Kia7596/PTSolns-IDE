@@ -363,7 +363,7 @@ jobs:
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
-          files-folder-filter: "*Windows_64bit.exe;*Windows_64bit.msi"
+          files-folder-filter: exe,msi
 
       - name: Stage channel file for merge
         if: >
