@@ -1,11 +1,34 @@
+# -----------------------------------------------------------------------------
+# PTSolns IDE - GitHub Actions Workflow
+#
+# Key fixes included in this version:
+# 1) REMOVE `on: create:` trigger (it can cause extra runs / confusing behavior).
+# 2) ADD `environment: production` to the *build* job
+#    - This is critical if you want Azure Entra "Federated credentials" of type
+#      Environment to work, because the OIDC subject becomes environment-based.
+# 3) ADD `audience: api://AzureADTokenExchange` to azure/login
+#    - Must match what you configured in Azure Federated Credential Audience.
+# 4) KEEP your existing main/tag triggers for normal builds + releases.
+#
+# NOTE:
+# - If your Azure federated credential is still "Tag" based, your subject will
+#   look like: repo:ORG/REPO:ref:refs/tags/x.y.z
+# - If your Azure federated credential is "Environment" based, the subject will
+#   include the environment info (and the job MUST have `environment:` set).
+# -----------------------------------------------------------------------------
+
 name: PTSolns IDE
 
 on:
-  create:
+  # NOTE: Removed `create:` trigger on purpose.
+  # create:
+
   push:
     branches:
       - main
       - '[0-9]+.[0-9]+.x'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
     paths-ignore:
       - '.github/**'
       - '!.github/workflows/build.yml'
@@ -15,14 +38,14 @@ on:
       - '!scripts/merge-channel-files.js'
       - 'static/**'
       - '*.md'
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
+
   workflow_dispatch:
     inputs:
       paid-runners:
         description: Include builds on non-free runners
         type: boolean
         default: false
+
   pull_request:
     paths-ignore:
       - '.github/**'
@@ -33,8 +56,10 @@ on:
       - '!scripts/merge-channel-files.js'
       - 'static/**'
       - '*.md'
-#   schedule:
-#     - cron: '0 3 * * *' # run every day at 3AM (https://docs.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
+
+  # schedule:
+  #   - cron: '0 3 * * *' # run every day at 3AM
+
   workflow_run:
     workflows:
       - Push Container Images
@@ -50,6 +75,7 @@ env:
   JOB_TRANSFER_ARTIFACT_PREFIX: build-artifacts-
   CHANGELOG_ARTIFACTS: changelog
   STAGED_CHANNEL_FILE_ARTIFACT_PREFIX: staged-channel-file-
+
   BASE_BUILD_DATA: |
     - config:
         # Human identifier for the job.
@@ -92,6 +118,7 @@ env:
           name: Linux_X86-64_zip
         - path: '*Linux_64bit.AppImage'
           name: Linux_X86-64_app_image
+
     - config:
         name: macOS x86
         runs-on: macos-15-intel
@@ -109,6 +136,7 @@ env:
           name: macOS_X86-64_dmg
         - path: '*macOS_64bit.zip'
           name: macOS_X86-64_zip
+
     - config:
         name: macOS ARM
         runs-on: macos-latest
@@ -124,6 +152,7 @@ env:
           name: macOS_arm64_dmg
         - path: '*macOS_arm64.zip'
           name: macOS_arm64_zip
+
   PAID_RUNNER_BUILD_DATA: |
     # This system was implemented to allow selective use of paid GitHub-hosted runners, due to the Apple Silicon runner
     # incurring a charge at that time. Free Apple Silicon runners are now available so the configuration was moved to
@@ -159,7 +188,10 @@ jobs:
       is-nightly: ${{ steps.determination.outputs.is-nightly }}
       channel-name: ${{ steps.determination.outputs.channel-name }}
       publish-to-s3: ${{ steps.determination.outputs.publish-to-s3 }}
+
+    # NOTE: Keeping this. It’s fine for non-Azure steps too.
     environment: production
+
     permissions: {}
     steps:
       - name: Determine the type of build
@@ -257,6 +289,11 @@ jobs:
       - build-type-determination
       - select-targets
 
+    # ✅ CRITICAL:
+    # If you want Azure Entra Federated Credential of type "Environment" to work,
+    # the job that runs azure/login MUST be bound to that environment.
+    environment: production
+
     # ADDED: required for Azure OIDC login
     permissions:
       id-token: write
@@ -274,8 +311,10 @@ jobs:
     strategy:
       matrix:
         config: ${{ fromJson(needs.select-targets.outputs.build-matrix) }}
+
     runs-on: ${{ matrix.config.runs-on }}
     container: ${{ fromJSON(matrix.config.container) }}
+
     defaults:
       run:
         shell: bash
@@ -353,6 +392,8 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
+          audience: api://AzureADTokenExchange
 
       # ADDED: Sign Windows artifacts (Windows only)
       - name: Sign Windows installers (Azure Trusted Signing)
@@ -363,6 +404,7 @@ jobs:
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
+          # NOTE: action expects a filter list like "exe,msi"
           files-folder-filter: exe,msi
 
       - name: Stage channel file for merge
@@ -476,7 +518,6 @@ jobs:
       - build
     if: always() && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
-
     env:
       BUILD_ARTIFACTS_FOLDER: build-artifacts
 
