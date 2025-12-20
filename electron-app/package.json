@@ -133,6 +133,12 @@
         "to": "app/plugins"
       }
     ],
+    "extraFiles": [
+    {
+        "from": "../drivers/ch340g-drivers",
+        "to": "resources/drivers/ch340g-drivers"
+    }
+    ],
     "win": {
       "target": [
         "msi",

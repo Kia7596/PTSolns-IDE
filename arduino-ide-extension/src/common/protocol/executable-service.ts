@@ -6,4 +6,5 @@ export interface ExecutableService {
     cliUri: string;
     lsUri: string;
   }>;
+  installCh340gDriver(): Promise<void>;
 }
