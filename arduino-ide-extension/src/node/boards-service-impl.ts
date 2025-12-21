@@ -111,13 +111,15 @@ export class BoardsServiceImpl
 
         // First, check if it's already installed
         const installedPlatforms = await this.getInstalledPlatforms();
-        let foundPackage = installedPlatforms.find((p: BoardsPackage) => p.id === packageId);
+        console.info(`Attempt ${i + 1}/${maxRetries}: getInstalledPlatforms returned: ${JSON.stringify(installedPlatforms)}`);
+        let foundPackage = installedPlatforms?.find((p: BoardsPackage) => p.id === packageId);
 
         if (!foundPackage) {
           // If not installed, search for it
           console.info(`Attempt ${i + 1}/${maxRetries}: PTSolns ${boardType} package (${packageId}) not found among installed. Searching...`);
           const searchResults = await this.search({ query: packageNameQuery });
-          foundPackage = searchResults.find((p: BoardsPackage) => p.id === packageId);
+          console.info(`Attempt ${i + 1}/${maxRetries}: search returned: ${JSON.stringify(searchResults)}`);
+          foundPackage = searchResults?.find((p: BoardsPackage) => p.id === packageId);
         }
 
         if (foundPackage) {
