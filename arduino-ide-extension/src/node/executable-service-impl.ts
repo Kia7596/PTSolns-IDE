@@ -38,16 +38,19 @@ export class ExecutableServiceImpl implements ExecutableService {
       command = `"${path.join(driverDir, 'ch340.exe')}"`;
       args = ['/S']; // Silent installation for Windows installer
     } else if (platform === 'darwin') {
-      command = path.join(driverDir, 'ch340.pkg');
+      const driverPkgPath = path.join(driverDir, 'ch340.pkg');
       try {
-        await fs.chmod(command, 0o755); // Make the package executable
-        console.log(`Set executable permissions for ${command}`);
+        await fs.chmod(driverPkgPath, 0o755); // Make the package executable
+        console.log(`Set executable permissions for ${driverPkgPath}`);
       } catch (error) {
-        console.error(`Failed to set executable permissions for ${command}:`, error);
+        console.error(`Failed to set executable permissions for ${driverPkgPath}:`, error);
         throw new Error(`Failed to prepare macOS installer: ${error}`);
       }
-      command = 'installer';
-      args = ['-pkg', path.join(driverDir, 'ch340.pkg'), '-target', '/']; // Use updated driverDir
+      const appleScript = `
+        do shell script "installer -pkg \\"${driverPkgPath}\\" -target /" with administrator privileges
+      `;
+      command = 'osascript';
+      args = ['-e', appleScript];
     } else if (platform === 'linux') {
       throw new Error(`Linux platform is not directly supported for CH340 driver installation via this method. Please install manually.`);
     } else {
