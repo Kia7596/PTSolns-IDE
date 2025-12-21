@@ -289,7 +289,7 @@ export async function createCliConfig(
   const directories = {
     data: join(configDirPath, 'data', 'PTSolns15'),
     downloads: join(configDirPath, 'data', 'PTSolns15', 'staging'),
-    user: join(configDirPath, 'user', 'Arduino'),
+    user: join(configDirPath, 'user', 'PTSolns15'),
   };
   for (const directoryPath of Object.values(directories)) {
     await fs.mkdir(directoryPath, { recursive: true });
