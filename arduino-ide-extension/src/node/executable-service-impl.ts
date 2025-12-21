@@ -24,13 +24,13 @@ export class ExecutableServiceImpl implements ExecutableService {
     };
   }
 
-  async installCh340gDriver(): Promise<void> {
+  async installCh340Driver(): Promise<void> {
     let command = '';
     let args: string[] = [];
     const platform = process.platform;
     // In an Electron app, process.resourcesPath points to the resources directory
     // which is where extraFiles are typically copied.
-    const driverDir = path.join(process.resourcesPath, 'drivers', 'ch340g-drivers');
+    const driverDir = path.join(process.resourcesPath, 'drivers', 'ch340-drivers');
     
     console.log(`Detected platform on backend: ${platform}`);
 
@@ -49,7 +49,7 @@ export class ExecutableServiceImpl implements ExecutableService {
       command = 'installer';
       args = ['-pkg', path.join(driverDir, 'ch340.pkg'), '-target', '/']; // Use updated driverDir
     } else if (platform === 'linux') {
-      throw new Error(`Linux platform is not directly supported for CH340G driver installation via this method. Please install manually.`);
+      throw new Error(`Linux platform is not directly supported for CH340 driver installation via this method. Please install manually.`);
     } else {
       throw new Error(`Unsupported operating system: ${platform}`);
     }

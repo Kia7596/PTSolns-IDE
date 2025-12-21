@@ -365,9 +365,9 @@ import {
 import { TestViewContribution as TheiaTestViewContribution } from '@theia/test/lib/browser/view/test-view-contribution';
 import { TestViewContribution } from './theia/test/test-view-contribution';
 import {
-  Ch340gDriverCommandContribution,
-  Ch340gDriverMenuContribution,
-} from './contributions/ch340g-driver-contribution';
+  Ch340DriverCommandContribution,
+  Ch340DriverMenuContribution,
+} from './contributions/ch340-driver-contribution';
 
 // Hack to fix copy/cut/paste issue after electron version update in Theia.
 // https://github.com/eclipse-theia/theia/issues/12487
@@ -386,11 +386,11 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
   bind(MenuContribution).toService(ArduinoFrontendContribution);
   bind(TabBarToolbarContribution).toService(ArduinoFrontendContribution);
 
-  // CH340G Driver
-  bind(Ch340gDriverCommandContribution).toSelf().inSingletonScope();
-  bind(CommandContribution).toService(Ch340gDriverCommandContribution);
-  bind(Ch340gDriverMenuContribution).toSelf().inSingletonScope();
-  bind(MenuContribution).toService(Ch340gDriverMenuContribution);
+  // CH340 Driver
+  bind(Ch340DriverCommandContribution).toSelf().inSingletonScope();
+  bind(CommandContribution).toService(Ch340DriverCommandContribution);
+  bind(Ch340DriverMenuContribution).toSelf().inSingletonScope();
+  bind(MenuContribution).toService(Ch340DriverMenuContribution);
   bind(FrontendApplicationContribution).toService(ArduinoFrontendContribution);
   bind(ColorContribution).toService(ArduinoFrontendContribution);
   bind(StylingParticipant).toService(ArduinoFrontendContribution);

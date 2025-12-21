@@ -94,10 +94,10 @@ export namespace ArduinoMenus {
     ...TOOLS,
     '1_firmware_uploader',
   ];
-  // `CH340G Driver Installation`
-  export const TOOLS__CH340G_DRIVER_GROUP = [
+  // `CH340 Driver Installation`
+  export const TOOLS__CH340_DRIVER_GROUP = [
     ...TOOLS,
-    '1_ch340g_driver',
+    '1_ch340_driver',
   ];
   // `Board`, `Port`, and `Get Board Info`.
   export const TOOLS__BOARD_SELECTION_GROUP = [...TOOLS, '2_board_selection'];

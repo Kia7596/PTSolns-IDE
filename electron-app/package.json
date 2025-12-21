@@ -135,8 +135,8 @@
     ],
     "extraFiles": [
     {
-        "from": "../drivers/ch340g-drivers",
-        "to": "resources/drivers/ch340g-drivers"
+        "from": "../drivers/ch340-drivers",
+        "to": "resources/drivers/ch340-drivers"
     }
     ],
     "win": {
