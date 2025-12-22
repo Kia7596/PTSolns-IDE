@@ -407,6 +407,11 @@ jobs:
           # NOTE: action expects a filter list like "exe,msi"
           files-folder-filter: exe,msi
 
+      - name: Recalculate artifacts hash
+        if: matrix.config.name == 'Windows'
+        run: |
+          node -e "require('./electron-app/scripts/post-package').recalculateArtifactsHash()"
+
       - name: Stage channel file for merge
         if: >
           needs.select-targets.outputs.merge-channel-files == 'true' &&

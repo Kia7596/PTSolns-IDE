@@ -8,18 +8,12 @@ const { glob } = require('glob');
 const { isRelease } = require('./utils');
 const { isZip, adjustArchiveStructure } = require('./archive');
 
-async function run() {
-  if (isCI) {
-    console.log(`🚢 Detected CI, recalculating artifacts hash...`);
-    await recalculateArtifactsHash();
-    console.log(`🚢 Detected CI, moving build artifacts...`);
-    await copyFilesToBuildArtifacts();
-    console.log('👌 Done.');
-  }
-}
-
-async function recalculateArtifactsHash() {
-  const { platform } = process;
+/**
+ * Recalculates the SHA512 hash for all artifacts in the channel file.
+ * This is necessary for Windows builds where signing can alter the file and thus the hash.
+ */
+exports.recalculateArtifactsHash = async function () {
+  const /** @type {NodeJS.Platform} */ platform = process.platform; // Explicitly use process.platform for clarity
   const cwd = path.join(__dirname, '..', 'dist');
   const channelFilePath = path.join(cwd, getChannelFile(platform));
   const yaml = require('yaml');
@@ -31,6 +25,7 @@ async function recalculateArtifactsHash() {
     const newSha512 = await hashFile(path.join(cwd, filePath));
     newChannelFile.sha512 = newSha512;
     if (!!files) {
+      /** @type {{ url: string; sha512: string; size: number }[]} */
       const newFiles = [];
       for (let file of files) {
         const { url } = file;
@@ -91,22 +86,27 @@ function hashFile(file, algorithm = 'sha512', encoding = 'base64', options) {
 // The channel files are necessary for updates check with electron-updater
 // to work correctly.
 // For more information: https://www.electron.build/auto-update
-function getChannelFile(platform) {
+/**
+ * Returns the name of the channel file to be released together with the IDE file.
+ * @param {NodeJS.Platform} platform The current platform.
+ * @returns {string} The channel file name or an empty string.
+ */
+function getChannelFile(platform) { // Removed explicit type annotation
   let currentChannel = 'beta';
   if (isRelease) {
     currentChannel = 'latest';
   }
   return (
     currentChannel +
-    {
+    /** @type {Partial<Record<NodeJS.Platform, string>>} */ ({
       linux: '-linux.yml',
       win32: '.yml',
       darwin: '-mac.yml',
-    }[platform]
+    })[platform]
   );
 }
 
-async function copyFilesToBuildArtifacts() {
+exports.copyFilesToBuildArtifacts = async function () {
   const { platform } = process;
   const cwd = path.join(__dirname, '..', 'dist');
   const targetFolder = path.join(cwd, 'build-artifacts');
@@ -183,4 +183,4 @@ async function cpf(sourceFilePath, targetFilePath) {
   console.log(`👌  >>> Copied ${sourceFilePath} to ${targetFilePath}.`);
 }
 
-run();
+// No longer need to run directly, functions are exported.
