@@ -136,6 +136,7 @@ export const IDEUpdaterComponent = ({
           "An update for the PTSolns IDE is available, but we're not able to download and install it automatically. Please go to the download page and download the latest version from there."
         )}
       </div>
+      {error && <div className="ide-updater-dialog--error-message">Error: {error.message}</div>}
     </div>
   );
 
