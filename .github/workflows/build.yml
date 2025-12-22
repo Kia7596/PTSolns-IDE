@@ -430,6 +430,21 @@ jobs:
           name: ${{ env.STAGED_CHANNEL_FILE_ARTIFACT_PREFIX }}${{ matrix.config.job-transfer-artifact-suffix }}
           path: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.STAGED_CHANNEL_FILES_PATH) || env.STAGED_CHANNEL_FILES_PATH }}
 
+      - name: Recalculate SHA512 hashes
+        working-directory: ${{ matrix.config.working-directory || './' }}
+        run: |
+          ARTIFACTS_DIR="${{ env.BUILD_ARTIFACTS_PATH }}"
+          echo "Recalculating SHA512 hashes for files in $ARTIFACTS_DIR..."
+          # Find all relevant application files and calculate their sha512sum
+          find "$ARTIFACTS_DIR" \( -name "*.exe" -o -name "*.msi" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.dmg" \) -type f -print0 | xargs -0 sha512sum > sha512sums.txt
+          echo "SHA512 hash recalculation complete. Checksums saved to sha512sums.txt"
+
+      - name: Upload SHA512 checksums report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sha512sums-report-${{ matrix.config.job-transfer-artifact-suffix }}
+          path: sha512sums.txt
+
       - name: Upload builds to job transfer artifact
         uses: actions/upload-artifact@v4
         with:
@@ -496,6 +511,49 @@ jobs:
 
       - name: Install dependencies
         run: yarn
+
+      - name: Update SHA512 sums in channel files
+        working-directory: ${{ env.CHANNEL_FILES_PATH }}
+        run: |
+          declare -A HASHS
+          echo "Loading SHA512 hashes from downloaded reports..."
+
+          # Read hashes from all downloaded sha512sums-report files
+          for report_file in ${{ env.CHANNEL_FILES_PATH }}/sha512sums/sha512sums-report-*; do
+            if [ -f "$report_file" ]; then
+              echo "Reading from $report_file..."
+              while IFS=$'  ' read -r hash filepath; do
+                BASENAME=$(basename "$filepath")
+                HASHS["$BASENAME"]="$hash"
+                echo "  Loaded: $BASENAME ($hash)"
+              done < "$report_file"
+            fi
+          done
+
+          echo "Finished loading SHA512 hashes."
+          echo "Loaded SHA512 hashes:"
+          for key in "${!HASHS[@]}"; do
+            echo "  $key: ${HASHS[$key]}"
+          done
+
+          # Process channel files
+          for file in *.yml; do
+            if [ -f "$file" ]; then
+              echo "Processing $file..."
+              for basename_key in "${!HASHS[@]}"; do
+                hash_value="${HASHS[$basename_key]}"
+                # Update .files[] entries
+                yq -i \
+                  ".files[] |= if .url | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "$file"
+                # Update top-level .path entries if they exist
+                yq -i \
+                  "if .path | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "$file"
+              done
+              echo "Updated $file"
+            fi
+          done
 
       - name: Merge "channel update info files"
         run: |
