@@ -62,22 +62,27 @@ export class ExecutableServiceImpl implements ExecutableService {
       try {
         const child = spawn(command, args, {
           detached: true,
-          stdio: 'inherit',
+          stdio: 'pipe',
+          shell: true,
+        });
+
+        child.stdout.on('data', (data) => {
+          console.log(`Installer stdout: ${data}`);
+        });
+
+        child.stderr.on('data', (data) => {
+          console.error(`Installer stderr: ${data}`);
         });
 
         child.on('close', (code) => {
           console.log(`Installer process exited with code ${code}`);
-          if (code !== 0) {
-            console.error(`CH340 driver installation failed with exit code ${code} on ${platform}.`);
-          }
         });
 
         child.on('error', (err) => {
           console.error(`Failed to start installer process: ${err}`);
-          throw err;
         });
 
-        child.unref();
+        child.unref(); // Allow the parent process to exit independently
         console.log(`Driver installation process started for ${platform}. PID: ${child.pid}`);
       } catch (error) {
         console.error(`Error executing driver installer for ${platform}:`, error);
