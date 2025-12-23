@@ -787,6 +787,8 @@ jobs:
       - name: Update SHA512 sums in channel files
         working-directory: ${{ env.ARTIFACTS_FOLDER }}
         run: |
+          echo "yq version:"
+          yq --version
           echo "Contents of ${{ env.ARTIFACTS_FOLDER }}:"
           ls -R .
           declare -A HASHS
@@ -821,12 +823,12 @@ jobs:
 
                 # Update .files[] entries
                 yq -i \
-                  ".files[] |= if .url | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "(.files[] | select(.url | basename == \"$basename_key\")).sha512 = \"$hash_value\"" \
                   "$file"
 
                 # Update top-level .path entries if they exist
                 yq -i \
-                  "if .path | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "select(.path | basename == \"$basename_key\") .sha512 = \"$hash_value\"" \
                   "$file"
               done
               echo "--- Updated $file ---"
