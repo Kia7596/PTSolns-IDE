@@ -821,14 +821,17 @@ jobs:
                 hash_value="${HASHS[$basename_key]}"
                 echo "  Attempting to update hash for '$basename_key' with new hash '$hash_value' in $file"
 
+                export YQ_BASENAME_KEY="$basename_key"
+                export YQ_HASH_VALUE="$hash_value"
+
                 # Update .files[] entries
-                yq -i --arg key "$basename_key" --arg hash "$hash_value" \
-                  '(.files[] | select(.url | basename == $key)).sha512 = $hash' \
+                yq -i \
+                  '.files[] |= select(.url | basename == env(YQ_BASENAME_KEY)).sha512 = env(YQ_HASH_VALUE)' \
                   "$file"
 
                 # Update top-level .path entries if they exist
-                yq -i --arg key "$basename_key" --arg hash "$hash_value" \
-                  'select(.path | basename == $key) .sha512 = $hash' \
+                yq -i \
+                  'select(.path | basename == env(YQ_BASENAME_KEY)) .sha512 = env(YQ_HASH_VALUE)' \
                   "$file"
               done
               echo "--- Updated $file ---"
