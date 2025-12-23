@@ -548,6 +548,13 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Debug Paths
+        run: |
+          echo "Runner temp directory: ${{ runner.temp }}"
+          ls -la ${{ runner.temp }}
+          echo "Channel files path variable: ${{ env.CHANNEL_FILES_PATH }}"
+          ls -la ${{ env.CHANNEL_FILES_PATH }} || true
+
       - name: Update SHA512 sums in channel files
         working-directory: ${{ env.CHANNEL_FILES_PATH }}
         run: |
