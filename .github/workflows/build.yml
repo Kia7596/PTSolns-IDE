@@ -796,7 +796,7 @@ jobs:
             for YML in stable.yml latest.yml; do
               if [ ! -f "$YML" ]; then echo "ERROR: $YML not found at $YML"; ls -la "$ARTIFACTS_DIR"; continue; fi
               echo "---- $YML BEFORE ----"; cat "$YML"
-              yq -i -y \
+              yq -i \
                 ".files[] |= (if .url == \"$EXE_BASENAME\" then (.sha512 = \"$NEW_SHA512\" | .size = $NEW_SIZE) else . end) |
                  (if .path == \"$EXE_BASENAME\" then .sha512 = \"$NEW_SHA512\" else . end)" \
                 "$YML"
