@@ -383,29 +383,29 @@ jobs:
           yarn --cwd electron-app build
           yarn --cwd electron-app package
 
-#DIAG
-      - name: Diagnostic - find CH340 exe in electron-app/dist
-        if: matrix.config.name == 'Windows'
-        shell: pwsh
-        run: |
-          Write-Host "PWD: $PWD"
-          Write-Host "=== Listing electron-app/dist (top level) ==="
-          Get-ChildItem "electron-app/dist" -Force | Format-Table Name,Mode,LastWriteTime
+# DIAG
+#       - name: Diagnostic - find CH340 exe in electron-app/dist
+#         if: matrix.config.name == 'Windows'
+#         shell: pwsh
+#         run: |
+#           Write-Host "PWD: $PWD"
+#           Write-Host "=== Listing electron-app/dist (top level) ==="
+#           Get-ChildItem "electron-app/dist" -Force | Format-Table Name,Mode,LastWriteTime
 
-          Write-Host "=== Searching for ch340.exe under electron-app/dist ==="
-          $hits = Get-ChildItem "electron-app/dist" -Recurse -Filter "ch340.exe" -File -ErrorAction SilentlyContinue
-          if (-not $hits -or $hits.Count -eq 0) {
-            Write-Host "NO ch340.exe found under electron-app/dist"
-            exit 0
-          }
+#           Write-Host "=== Searching for ch340.exe under electron-app/dist ==="
+#           $hits = Get-ChildItem "electron-app/dist" -Recurse -Filter "ch340.exe" -File -ErrorAction SilentlyContinue
+#           if (-not $hits -or $hits.Count -eq 0) {
+#             Write-Host "NO ch340.exe found under electron-app/dist"
+#             exit 0
+#           }
 
-          Write-Host "FOUND ch340.exe at:"
-          $hits | ForEach-Object { Write-Host " - $($_.FullName)" }
+#           Write-Host "FOUND ch340.exe at:"
+#           $hits | ForEach-Object { Write-Host " - $($_.FullName)" }
 
-          Write-Host "=== (Optional) Searching for drivers/ch340-drivers folder ==="
-          $dirs = Get-ChildItem "electron-app/dist" -Recurse -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -match "drivers\\ch340-drivers$" }
-          $dirs | ForEach-Object { Write-Host " - DIR: $($_.FullName)" }
+#           Write-Host "=== (Optional) Searching for drivers/ch340-drivers folder ==="
+#           $dirs = Get-ChildItem "electron-app/dist" -Recurse -Directory -ErrorAction SilentlyContinue |
+#             Where-Object { $_.FullName -match "drivers\\ch340-drivers$" }
+#           $dirs | ForEach-Object { Write-Host " - DIR: $($_.FullName)" }
 
       # ADDED: Azure OIDC login (Windows only)
       - name: Azure login (OIDC)
@@ -418,6 +418,17 @@ jobs:
           # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
 
+      - name: Sign CH340 driver installer (Azure Trusted Signing)
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: electron-app/dist/win-unpacked/resources/drivers/ch340-drivers
+          files-folder-filter: exe
+
+
       # ADDED: Sign Windows artifacts (Windows only)
       - name: Sign Windows installers (Azure Trusted Signing)
         if: matrix.config.name == 'Windows'
@@ -429,34 +440,6 @@ jobs:
           files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
           # NOTE: action expects a filter list like "exe,msi"
           files-folder-filter: exe,msi
-
-
-      # - name: Locate CH340 exe in build artifacts
-      #   if: matrix.config.name == 'Windows'
-      #   shell: pwsh
-      #   run: |
-      #     $root = Join-Path $PWD "${{ env.BUILD_ARTIFACTS_PATH }}"
-      #     Write-Host "Searching under: $root"
-
-      #     $matches = Get-ChildItem -Path $root -Recurse -Filter "ch340.exe" -File
-      #     if (-not $matches -or $matches.Count -eq 0) { throw "ch340.exe not found under $root" }
-
-      #     Write-Host "Matches found:"
-      #     $matches | ForEach-Object { Write-Host " - $($_.FullName)" }
-
-      #     $exe = $matches | Select-Object -First 1
-      #     "CH340_SIGN_DIR=$($exe.Directory.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-      #     Write-Host "Using: $($exe.FullName)"
-
-      # - name: Sign CH340 driver installer (Azure Trusted Signing)
-      #   if: matrix.config.name == 'Windows'
-      #   uses: azure/trusted-signing-action@v0
-      #   with:
-      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-      #     files-folder: ${{ env.CH340_SIGN_DIR }}
-      #     files-folder-filter: exe
 
 
 
