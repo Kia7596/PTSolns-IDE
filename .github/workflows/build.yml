@@ -406,6 +406,24 @@ jobs:
           # NOTE: action expects a filter list like "exe,msi"
           files-folder-filter: exe,msi
 
+
+      - name: Locate CH340 exe in build artifacts
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $root = Join-Path $PWD "${{ env.BUILD_ARTIFACTS_PATH }}"
+          Write-Host "Searching under: $root"
+
+          $matches = Get-ChildItem -Path $root -Recurse -Filter "ch340.exe" -File
+          if (-not $matches -or $matches.Count -eq 0) { throw "ch340.exe not found under $root" }
+
+          Write-Host "Matches found:"
+          $matches | ForEach-Object { Write-Host " - $($_.FullName)" }
+
+          $exe = $matches | Select-Object -First 1
+          "CH340_SIGN_DIR=$($exe.Directory.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using: $($exe.FullName)"
+
       - name: Sign CH340 driver installer (Azure Trusted Signing)
         if: matrix.config.name == 'Windows'
         uses: azure/trusted-signing-action@v0
@@ -413,8 +431,9 @@ jobs:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ matrix.config.working-directory && format('{0}/{1}/resources/drivers/ch340-drivers', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || format('{0}/resources/drivers/ch340-drivers', env.BUILD_ARTIFACTS_PATH) }}
+          files-folder: ${{ env.CH340_SIGN_DIR }}
           files-folder-filter: exe
+
 
 
       - name: Stage channel file for merge
