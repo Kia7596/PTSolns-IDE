@@ -777,7 +777,7 @@ jobs:
             fi
           done
 
-      - name: Update channel files with signed EXE info (Windows)
+      - name: Update channel files with signed EXE info (Windows) using sed
         working-directory: ${{ env.ARTIFACTS_FOLDER }}
         shell: bash
         run: |
@@ -793,14 +793,14 @@ jobs:
             echo "SIGNED EXE found: $EXE_PATH"
             echo "NEW_SHA512: $NEW_SHA512"
             echo "NEW_SIZE: $NEW_SIZE"
-            for YML in stable.yml latest.yml; do
-              if [ ! -f "$YML" ]; then echo "ERROR: $YML not found at $YML"; ls -la "$ARTIFACTS_DIR"; continue; fi
-              echo "---- $YML BEFORE ----"; cat "$YML"
-              yq -i \
-                ".files[] |= (if .url == \"$EXE_BASENAME\" then (.sha512 = \"$NEW_SHA512\" | .size = $NEW_SIZE) else . end) |
-                 (if .path == \"$EXE_BASENAME\" then .sha512 = \"$NEW_SHA512\" else . end)" \
-                "$YML"
-              echo "---- $YML AFTER ----"; cat "$YML"
+            for YML_FILE in stable.yml latest.yml; do
+              if [ ! -f "$YML_FILE" ]; then echo "ERROR: $YML_FILE not found at $YML_FILE"; ls -la "$ARTIFACTS_DIR"; continue; fi
+              echo "---- $YML_FILE BEFORE ----"; cat "$YML_FILE"
+
+              sed -i "/Windows_64bit\.exe/,/^[[:space:]]*sha512:/s|sha512:[[:space:]]*[[:alnum:]+/=]*|sha512: $NEW_SHA512|" $YML_FILE
+              sed -i "/Windows_64bit\.exe/,+2 s/size: [0-9]*/size: $NEW_SIZE/" $YML_FILE
+
+              echo "---- $YML_FILE AFTER ----"; cat "$YML_FILE"
             done
           fi
 
