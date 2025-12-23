@@ -822,13 +822,13 @@ jobs:
                 echo "  Attempting to update hash for '$basename_key' with new hash '$hash_value' in $file"
 
                 # Update .files[] entries
-                yq -i \
-                  "(.files[] | select(.url | basename == \"$basename_key\")).sha512 = \"$hash_value\"" \
+                yq -i --arg key "$basename_key" --arg hash "$hash_value" \
+                  '(.files[] | select(.url | basename == $key)).sha512 = $hash' \
                   "$file"
 
                 # Update top-level .path entries if they exist
-                yq -i \
-                  "select(.path | basename == \"$basename_key\") .sha512 = \"$hash_value\"" \
+                yq -i --arg key "$basename_key" --arg hash "$hash_value" \
+                  'select(.path | basename == $key) .sha512 = $hash' \
                   "$file"
               done
               echo "--- Updated $file ---"
