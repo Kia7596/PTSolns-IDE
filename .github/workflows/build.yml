@@ -826,12 +826,12 @@ jobs:
 
                 # Update .files[] entries
                 yq -i \
-                  '.files[] |= select(.url | basename == env(YQ_BASENAME_KEY)).sha512 = env(YQ_HASH_VALUE)' \
+                  '.files[] |= if (.url | basename) == env(YQ_BASENAME_KEY) then .sha512 = env(YQ_HASH_VALUE) else . end' \
                   "$file"
 
-                # Update top-level .path entries if they exist
+                # Update top-level .path and sha512 entries if they exist
                 yq -i \
-                  'select(.path | basename == env(YQ_BASENAME_KEY)) .sha512 = env(YQ_HASH_VALUE)' \
+                  'if (.path | basename) == env(YQ_BASENAME_KEY) then .sha512 = env(YQ_HASH_VALUE) else . end' \
                   "$file"
               done
               echo "--- Updated $file ---"
