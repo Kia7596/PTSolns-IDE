@@ -36,7 +36,7 @@ export class ExecutableServiceImpl implements ExecutableService {
 
     if (platform === 'win32') {
       command = `"${path.join(driverDir, 'ch340.exe')}"`;
-      args = ['/S']; // Silent installation for Windows installer
+      args = []; // Silent installation for Windows installer
     } else if (platform === 'darwin') {
       const driverPkgPath = path.join(driverDir, 'ch340.pkg');
       try {
