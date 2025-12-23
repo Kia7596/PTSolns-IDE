@@ -777,70 +777,32 @@ jobs:
             fi
           done
 
-      - name: Recalculate SHA512 hashes for release artifacts
+      - name: Update channel files with signed EXE info (Windows)
         working-directory: ${{ env.ARTIFACTS_FOLDER }}
+        shell: bash
         run: |
-          echo "Recalculating SHA512 hashes for files in ${{ env.ARTIFACTS_FOLDER }}..."
-          find . \( -name "*.exe" -o -name "*.msi" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.dmg" \) -type f -print0 | xargs -0 sha512sum > sha512sums.txt
-          echo "SHA512 hash recalculation complete. Checksums saved to sha512sums.txt"
-
-      - name: Update SHA512 sums in channel files
-        working-directory: ${{ env.ARTIFACTS_FOLDER }}
-        run: |
-          echo "yq version:"
-          yq --version
-          echo "Contents of ${{ env.ARTIFACTS_FOLDER }}:"
-          ls -R .
-          declare -A HASHS
-          echo "Loading SHA512 hashes from sha512sums.txt..."
-
-          if [ -f "sha512sums.txt" ]; then
-            while IFS=$'  ' read -r hash filepath; do
-              BASENAME=$(basename "$filepath")
-              HASHS["$BASENAME"]="$hash"
-              echo "  Loaded: $BASENAME ($hash)"
-            done < "sha512sums.txt"
+          set -euo pipefail
+          ARTIFACTS_DIR="."
+          EXE_PATH="$(find "$ARTIFACTS_DIR" -name '*Windows_64bit.exe' -print -quit)"
+          if [ -z "$EXE_PATH" ]; then
+            echo "Windows 64-bit EXE not found in artifacts. Skipping update for signed EXE."
           else
-            echo "Error: sha512sums.txt not found!"
-            exit 1
+            EXE_BASENAME="$(basename "$EXE_PATH")"
+            NEW_SHA512="$(openssl dgst -sha512 -binary "$EXE_PATH" | openssl base64 -A)"
+            NEW_SIZE="$(wc -c < "$EXE_PATH" | tr -d ' ')"
+            echo "SIGNED EXE found: $EXE_PATH"
+            echo "NEW_SHA512: $NEW_SHA512"
+            echo "NEW_SIZE: $NEW_SIZE"
+            for YML in stable.yml latest.yml; do
+              if [ ! -f "$YML" ]; then echo "ERROR: $YML not found at $YML"; ls -la "$ARTIFACTS_DIR"; continue; fi
+              echo "---- $YML BEFORE ----"; cat "$YML"
+              yq -i -y \
+                ".files[] |= (if .url == \"$EXE_BASENAME\" then (.sha512 = \"$NEW_SHA512\" | .size = $NEW_SIZE) else . end) |
+                 (if .path == \"$EXE_BASENAME\" then .sha512 = \"$NEW_SHA512\" else . end)" \
+                "$YML"
+              echo "---- $YML AFTER ----"; cat "$YML"
+            done
           fi
-
-          echo "--- Finished loading SHA512 hashes ---"
-          echo "Loaded SHA512 hashes for lookup:"
-          for key in "${!HASHS[@]}"; do
-            echo "  $key: ${HASHS[$key]}"
-          done
-
-          # Process channel files (latest.yml and stable.yml)
-          for file in latest.yml stable.yml; do
-            if [ -f "$file" ]; then
-              echo "--- Processing channel file: $file ---"
-              echo "Current content of $file before update:"
-              cat "$file"
-              for basename_key in "${!HASHS[@]}"; do
-                hash_value="${HASHS[$basename_key]}"
-                echo "  Attempting to update hash for '$basename_key' with new hash '$hash_value' in $file"
-
-                export YQ_BASENAME_KEY="$basename_key"
-                export YQ_HASH_VALUE="$hash_value"
-
-                # Update .files[] entries
-                yq -i \
-                  '.files[] |= if (.url | basename) == env(YQ_BASENAME_KEY) then .sha512 = env(YQ_HASH_VALUE) else . end' \
-                  "$file"
-
-                # Update top-level .path and sha512 entries if they exist
-                yq -i \
-                  'if (.path | basename) == env(YQ_BASENAME_KEY) then .sha512 = env(YQ_HASH_VALUE) else . end' \
-                  "$file"
-              done
-              echo "--- Updated $file ---"
-              echo "Content of $file after update:"
-              cat "$file"
-            else
-              echo "  Channel file not found: $file. Skipping."
-            fi
-          done
 
       - name: Get Tag
         id: tag_name
