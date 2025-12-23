@@ -777,6 +777,66 @@ jobs:
             fi
           done
 
+      - name: Recalculate SHA512 hashes for release artifacts
+        working-directory: ${{ env.ARTIFACTS_FOLDER }}
+        run: |
+          echo "Recalculating SHA512 hashes for files in ${{ env.ARTIFACTS_FOLDER }}..."
+          find . \( -name "*.exe" -o -name "*.msi" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.dmg" \) -type f -print0 | xargs -0 sha512sum > sha512sums.txt
+          echo "SHA512 hash recalculation complete. Checksums saved to sha512sums.txt"
+
+      - name: Update SHA512 sums in channel files
+        working-directory: ${{ env.ARTIFACTS_FOLDER }}
+        run: |
+          echo "Contents of ${{ env.ARTIFACTS_FOLDER }}:"
+          ls -R .
+          declare -A HASHS
+          echo "Loading SHA512 hashes from sha512sums.txt..."
+
+          if [ -f "sha512sums.txt" ]; then
+            while IFS=$'  ' read -r hash filepath; do
+              BASENAME=$(basename "$filepath")
+              HASHS["$BASENAME"]="$hash"
+              echo "  Loaded: $BASENAME ($hash)"
+            done < "sha512sums.txt"
+          else
+            echo "Error: sha512sums.txt not found!"
+            exit 1
+          fi
+
+          echo "--- Finished loading SHA512 hashes ---"
+          echo "Loaded SHA512 hashes for lookup:"
+          for key in "${!HASHS[@]}"; do
+            echo "  $key: ${HASHS[$key]}"
+          done
+
+          # Process channel files (latest.yml and stable.yml)
+          for file in latest.yml stable.yml; do
+            if [ -f "$file" ]; then
+              echo "--- Processing channel file: $file ---"
+              echo "Current content of $file before update:"
+              cat "$file"
+              for basename_key in "${!HASHS[@]}"; do
+                hash_value="${HASHS[$basename_key]}"
+                echo "  Attempting to update hash for '$basename_key' with new hash '$hash_value' in $file"
+
+                # Update .files[] entries
+                yq -i \
+                  ".files[] |= if .url | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "$file"
+
+                # Update top-level .path entries if they exist
+                yq -i \
+                  "if .path | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "$file"
+              done
+              echo "--- Updated $file ---"
+              echo "Content of $file after update:"
+              cat "$file"
+            else
+              echo "  Channel file not found: $file. Skipping."
+            fi
+          done
+
       - name: Get Tag
         id: tag_name
         run: |
