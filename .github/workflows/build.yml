@@ -413,8 +413,9 @@ jobs:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ matrix.config.working-directory && format('{0}/drivers/ch340-drivers', matrix.config.working-directory) || 'drivers/ch340-drivers' }}
+          files-folder: ${{ matrix.config.working-directory && format('{0}/{1}/resources/drivers/ch340-drivers', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || format('{0}/resources/drivers/ch340-drivers', env.BUILD_ARTIFACTS_PATH) }}
           files-folder-filter: exe
+
 
       - name: Stage channel file for merge
         if: >
