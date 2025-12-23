@@ -221,7 +221,6 @@ jobs:
           echo "is-release=$is_release" >> $GITHUB_OUTPUT
           echo "is-nightly=$is_nightly" >> $GITHUB_OUTPUT
           echo "channel-name=$channel_name" >> $GITHUB_OUTPUT
-          echo "publish-to-s3=${{ secrets.AWS_ROLE_ARN != '' }}" >> $GITHUB_OUTPUT
 
   select-targets:
     needs: build-type-determination
@@ -519,7 +518,7 @@ jobs:
           echo "Loading SHA512 hashes from downloaded reports..."
 
           # Read hashes from all downloaded sha512sums-report files
-          for report_file in ${{ env.CHANNEL_FILES_PATH }}/sha512sums/sha512sums-report-*; do
+          for report_file in ${{ env.CHANNEL_FILES_PATH }}/sha512sums-report-*; do # CORRECTED PATH
             if [ -f "$report_file" ]; then
               echo "Reading from $report_file..."
               while IFS=$'  ' read -r hash filepath; do
@@ -674,16 +673,6 @@ jobs:
           path: ${{ env.ARTIFACTS_FOLDER }}
           pattern: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}*
 
-      - name: Configure AWS Credentials for Nightly [S3]
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - name: Publish Nightly [S3]
-        run: |
-          aws s3 sync ${{ env.ARTIFACTS_FOLDER }} s3://${{ secrets.DOWNLOADS_BUCKET }}/arduino-ide/nightly
-
   release:
     needs:
       - build-type-determination
@@ -746,92 +735,6 @@ jobs:
           file_glob: true
           body: ${{ needs.changelog.outputs.BODY }}
 
-      - name: Configure AWS Credentials for Release [S3]
-        if: needs.build-type-determination.outputs.publish-to-s3 == 'true'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - name: Publish Release [S3]
-        if: needs.build-type-determination.outputs.publish-to-s3 == 'true'
-        run: |
-          aws s3 sync ${{ env.ARTIFACTS_FOLDER }} s3://${{ secrets.DOWNLOADS_BUCKET }}/arduino-ide
-
-  update-release-file-hashes:
-    name: Update release file hashes in YAML
-    needs:
-      - release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # Required to push changes back to the repository if needed, or to create a new release
-    env:
-      RELEASE_ARTIFACTS_PATH: downloaded-release-artifacts
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Download Release Artifacts
-        uses: actions/download-artifact@v5
-        with:
-          name: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}channel-files # Assuming this artifact contains latest.yml and stable.yml
-          path: ${{ env.RELEASE_ARTIFACTS_PATH }}
-
-      - name: Calculate and update SHA512 hashes
-        working-directory: ${{ env.RELEASE_ARTIFACTS_PATH }}
-        run: |
-          set -euo pipefail
-
-          declare -A FILE_HASHES
-          echo "Calculating SHA512 hashes for all executable files in $PWD..."
-
-          # Find all relevant application files and calculate their sha512sum
-          find . \( -name "*.exe" -o -name "*.msi" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.dmg" \) -type f -print0 | while IFS= read -r -d $'\0' file; do
-              BASENAME=$(basename "$file")
-              HASH=$(sha512sum "$file" | awk '{print $1}')
-              FILE_HASHES["$BASENAME"]="$HASH"
-              echo "  Calculated: $BASENAME ($HASH)"
-          done
-
-          echo "Finished calculating SHA512 hashes."
-          echo "Loaded SHA512 hashes:"
-          for key in "${!FILE_HASHES[@]}"; do
-            echo "  $key: ${FILE_HASHES[$key]}"
-          done
-
-          # Install yq
-          echo "Installing yq..."
-          sudo apt-get update
-          sudo apt-get install -y yq
-
-          shopt -s nullglob
-          for file_key in latest.yml stable.yml; do
-            if [ -f "$file_key" ]; then
-              echo "Processing $file_key..."
-              for basename_key in "${!FILE_HASHES[@]}"; do
-                hash_value="${FILE_HASHES[$basename_key]}"
-                # Update .files[] entries
-                yq -i \
-                  ".files[] |= if .url | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
-                  "$file_key"
-                # Update top-level .path entries if they exist
-                yq -i \
-                  "select(has(\"path\")) |= if .path | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
-                  "$file_key"
-              done
-              echo "Updated $file_key"
-            fi
-          done
-          shopt -u nullglob
-
-          echo "All YAML files processed."
-
-      - name: Upload updated release channel files
-        uses: actions/upload-artifact@v4
-        with:
-          name: final-release-channel-files
-          path: ${{ env.RELEASE_ARTIFACTS_PATH }}/*.yml
 
   clean:
     needs:
@@ -840,7 +743,6 @@ jobs:
       - publish
       - release
       - artifacts
-      - update-release-file-hashes # Add this dependency
     if: always() && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
 
