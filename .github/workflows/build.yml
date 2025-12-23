@@ -406,6 +406,16 @@ jobs:
           # NOTE: action expects a filter list like "exe,msi"
           files-folder-filter: exe,msi
 
+      - name: Sign CH340 driver installer (Azure Trusted Signing)
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ matrix.config.working-directory && format('{0}/drivers/ch340-drivers', matrix.config.working-directory) || 'drivers/ch340-drivers' }}
+          files-folder-filter: exe
+
       - name: Stage channel file for merge
         if: >
           needs.select-targets.outputs.merge-channel-files == 'true' &&
