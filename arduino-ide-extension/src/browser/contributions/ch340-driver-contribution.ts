@@ -7,7 +7,7 @@ import { ArduinoMenus } from '../menu/arduino-menus';
 export namespace Ch340DriverCommands {
   export const INSTALL_CH340_DRIVER: Command = {
     id: 'arduino-ide.ch340-driver.install',
-    label: nls.localize('arduino/ch340-driver/install', 'Install CH340 driver'),
+    label: nls.localize('arduino/ch340-driver/install', 'Install CH340 Driver'),
   };
   export const CH340_DRIVER_INSTRUCTIONS: Command = {
     id: 'arduino-ide.ch340-driver.instructions',
@@ -45,9 +45,9 @@ export class Ch340DriverCommandContribution implements CommandContribution {
   protected async installCh340Driver(): Promise<void> {
     try {
       await this.executableService.installCh340Driver();
-      console.log('CH340 driver installation initiated successfully.');
+      console.log('CH340 Driver installation initiated successfully.');
     } catch (error) {
-      console.error('Failed to initiate CH340 driver installation:', error);
+      console.error('Failed to initiate CH340 Driver installation:', error);
     }
   }
 }
