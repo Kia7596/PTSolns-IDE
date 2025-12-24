@@ -160,25 +160,6 @@ export namespace ArduinoMenus {
     '2_resources',
   ];
 
-  // -- Account
-  export const ARDUINO_ACCOUNT__CONTEXT = ['arduino-account--context'];
-  export const ARDUINO_ACCOUNT__CONTEXT__SIGN_IN_GROUP = [
-    ...ARDUINO_ACCOUNT__CONTEXT,
-    '0_sign_in',
-  ];
-  export const ARDUINO_ACCOUNT__CONTEXT__LEARN_MORE_GROUP = [
-    ...ARDUINO_ACCOUNT__CONTEXT,
-    '1_learn_more',
-  ];
-  export const ARDUINO_ACCOUNT__CONTEXT__GO_TO_GROUP = [
-    ...ARDUINO_ACCOUNT__CONTEXT,
-    '2_go_to',
-  ];
-  export const ARDUINO_ACCOUNT__CONTEXT__SIGN_OUT_GROUP = [
-    ...ARDUINO_ACCOUNT__CONTEXT,
-    '3_sign_out',
-  ];
-
   // Context menu from the library and boards manager widget
   export const ARDUINO_COMPONENT__CONTEXT = ['arduino-component--context'];
   export const ARDUINO_COMPONENT__CONTEXT__INFO_GROUP = [
