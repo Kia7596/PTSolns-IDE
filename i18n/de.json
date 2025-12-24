@@ -77,7 +77,7 @@
       "uploadingCertificates": "Zertifikate hochladen..."
     },
     "checkForUpdates": {
-      "checkForUpdates": "Arduino-Updates suchen",
+      "checkForUpdates": "PTSolns-Updates suchen",
       "installAll": "Alle installieren",
       "noUpdates": " Es sind keine neuen Updates verfügbar.",
       "promptUpdateBoards": " Es sind Updates für einige deiner Boards verfügbar.",
@@ -144,7 +144,7 @@
       "noBoardSelected": "Kein Board ausgewählt",
       "noSketchOpened": "Kein Sketch geöffnet",
       "notConnected": "[keine Verbindung]",
-      "offlineIndicator": "Anscheinend bist du offline. Ohne eine aktive Internetverbindung kann das Arduino CLI nicht die nötigen Ressourcen herunterladen, was zu Problemen führen kann. Bitte überprüfe deine Internetverbindung und starte das Programm neu. ",
+      "offlineIndicator": "Anscheinend bist du offline. Ohne eine aktive Internetverbindung kann das PTSolns CLI nicht die nötigen Ressourcen herunterladen, was zu Problemen führen kann. Bitte überprüfe deine Internetverbindung und starte das Programm neu. ",
       "oldFormat": " Der Sketch '{0}' verwendet das alte Format '.pde'. Möchtest du auf die neue Endung '.ino' wechseln?",
       "partner": "Partner",
       "processing": "Verarbeiten",
@@ -204,7 +204,7 @@
     },
     "coreContribution": {
       "copyError": "Fehlermeldungen kopieren",
-      "noBoardSelected": "Kein Board ausgewählt. Wähle dein Arduino-Board im Menü 'Werkzeuge > Board'."
+      "noBoardSelected": "Kein Board ausgewählt. Wähle dein Board im Menü 'Werkzeuge > Board'."
     },
     "createCloudCopy": "Sketch in die Cloud hochladen",
     "daemon": {
@@ -267,9 +267,9 @@
       "keyword": "Schlagwort eingeben",
       "privacyPolicy": "Datenschutzbestimmungen",
       "reference": "Referenz",
-      "search": "Suche auf Arduino.cc",
+      "search": "Suche auf PTSolns.com",
       "troubleshooting": "Fehlersuche",
-      "visit": "Besuche Arduino.cc"
+      "visit": "Besuche PTSolns.com"
     },
     "ide-updater": {
       "checkForUpdates": "PTSolns IDE Updates suchen",
@@ -297,7 +297,7 @@
     },
     "library": {
       "addZip": ".ZIP-Bibliothek hinzufügen...",
-      "arduinoLibraries": "Arduino-Bibliotheken",
+      "arduinoLibraries": "PTSolns-Bibliotheken",
       "contributedLibraries": "Beigesteuerte Bibliotheken",
       "include": "Bibliothek einbinden",
       "installAll": "Alle installieren",
@@ -369,7 +369,7 @@
       "browse": "Durchsuchen",
       "checkForUpdate": "Benachrichtigungen bei verfügbaren Updates für IDE, Boards und Bibliotheken erhalten. Nach einer Änderung ist ein Neustart der IDE notwendig. Standardmäßig eingeschaltet.",
       "choose": "Wähle",
-      "cli.daemonDebug": "Debug-Protokoll von gRPC-Aufrufe an das Arduino CLI aktivieren. Nach der Änderung ist ein Neustart der IDE notwendig. Standardmäßig deaktiviert.",
+      "cli.daemonDebug": "Debug-Protokoll von gRPC-Aufrufe an das PTSolns CLI aktivieren. Nach der Änderung ist ein Neustart der IDE notwendig. Standardmäßig deaktiviert.",
       "cloud.enabled": "Wenn diese Option aktiviert ist, sind die Sketch-Syncfunktionen aktiv. Standardmäßig aktiviert.",
       "cloud.pull.warn": "Wenn diese Option aktiviert ist, werden Nutzer vor dem Herunterladen eines Sketches aus der Cloud gewarnt. Standardmäßig aktiviert.",
       "cloud.push.warn": "Wenn diese Option aktiviert ist, werden Nutzer vor dem Hochladen eines Sketches in die Cloud gewarnt. Standardmäßig aktiviert. ",
@@ -386,14 +386,14 @@
       "editorQuickSuggestions": "Schnelle Editor-Vorschläge",
       "enterAdditionalURLs": "Zusätzliche URLs hinzufügen, jeweils eine pro Zeile.",
       "files.inside.sketches": "Dateien im Sketch zeigen",
-      "ide.updateBaseUrl": "URL für den Download von Updates. Standardmäßig 'https://downloads.arduino.cc/arduino-ide'",
+      "ide.updateBaseUrl": "URL für den Download von Updates. Standardmäßig 'https://ptsolns.com/ide'",
       "ide.updateChannel": "Release-Channel, von dem Updates bezogen werden sollen. 'stable' für stabile und getestete Updates. 'nightly' für allerneuste Updates, welche jedoch noch nicht ausreichend getestet wurden.",
       "interfaceScale": "Skalierung der Darstellung",
       "invalid.editorFontSize": "Ungültige Schriftgröße. Der Wert muss eine positie ganze Zahl sein.",
       "invalid.sketchbook.location": "Ungültiger Sketchbook-Pfad: {0}",
       "invalid.theme": "Ungültiges Design",
-      "language.asyncWorkers": "Anzahl der asynchronen Worker, die vom Arduino-Sprachserver (clangd) verwendet werden. Der Hintergrundindex verwendet diese Anzahl an Workern ebenfalls. Der Mindestwert ist 0 und der Höchstwert ist 8. Wenn der Wert 0 ist, verwendet der Sprachserver alle verfügbaren Kerne. Der Standardwert ist 0.",
-      "language.log": "Wenn diese Option aktiviert ist, schreibt der Arduino-Sprachserver seine Logdateien in den Sketch-Ordner. Standardmäßig deaktivert. ",
+      "language.asyncWorkers": "Anzahl der asynchronen Worker, die vom PTSolns-Sprachserver (clangd) verwendet werden. Der Hintergrundindex verwendet diese Anzahl an Workern ebenfalls. Der Mindestwert ist 0 und der Höchstwert ist 8. Wenn der Wert 0 ist, verwendet der Sprachserver alle verfügbaren Kerne. Der Standardwert ist 0.",
+      "language.log": "Wenn diese Option aktiviert ist, schreibt der PTSolns-Sprachserver seine Logdateien in den Sketch-Ordner. Standardmäßig deaktivert. ",
       "language.realTimeDiagnostics": "Wenn diese Option aktiviert ist, wird bei der Eingabe im Editor eine Echtzeitdiagnose angeboten. Standardmäßig deaktiviert.",
       "manualProxy": "Manuelle Proxy-Einstellung",
       "monitor": {
@@ -411,7 +411,7 @@
       },
       "showVerbose": "Compiler-Meldungen anzeigen beim",
       "sketch": {
-        "inoBlueprint": "Dateipfad zur Standardvorlage '.ino'. Wenn eine Vorlage angegeben ist, wird deren Inhalt für alle mit der IDE erstellten Sketches verwendet. Wenn keine Vorlage angegeben ist, werden Sketches mit dem Standard-Arduino-Inhalt erstellt. Nichtauffindbare Vorlagen werden ignoriert. **Ein Neustart der IDE ist erforderlich**, um diese Einstellung zu übernehmen."
+        "inoBlueprint": "Dateipfad zur Standardvorlage '.ino'. Wenn eine Vorlage angegeben ist, wird deren Inhalt für alle mit der IDE erstellten Sketches verwendet. Wenn keine Vorlage angegeben ist, werden Sketches mit dem Standard-PTSolns-Inhalt erstellt. Nichtauffindbare Vorlagen werden ignoriert. **Ein Neustart der IDE ist erforderlich**, um diese Einstellung zu übernehmen."
       },
       "sketchbook.location": "Pfad für Sketchbook",
       "sketchbook.showAllFiles": "Wenn diese Option aktiviert ist, werden alle Sketch-Dateien innerhalb des Sketches angezeigt. Standardmäßig deaktiviert. ",

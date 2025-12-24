@@ -77,7 +77,7 @@
       "uploadingCertificates": "Transfert des certificats"
     },
     "checkForUpdates": {
-      "checkForUpdates": "Vérifier les mises à jour d’Arduino",
+      "checkForUpdates": "Vérifier les mises à jour d’PTSolns",
       "installAll": "Tout installer",
       "noUpdates": "Il n'y a pas de mises à jour récentes disponibles.",
       "promptUpdateBoards": "Des mises à jour sont disponibles pour certaines de vos cartes.",
@@ -144,7 +144,7 @@
       "noBoardSelected": "Aucune carte sélectionnée.",
       "noSketchOpened": "Aucun croquis ouvert",
       "notConnected": "[hors ligne]",
-      "offlineIndicator": "Il semblerait que vous êtes déconnecté. Sans connexion internet la CLI d'Arduino pourrait ne pas être en mesure de télécharger les resources requises, ce qui pourrait provoquer des dysfonctionnements. Merci de vous connecter à Internet et de redémarrer l'application.",
+      "offlineIndicator": "Il semblerait que vous êtes déconnecté. Sans connexion internet la CLI d'PTSolns pourrait ne pas être en mesure de télécharger les resources requises, ce qui pourrait provoquer des dysfonctionnements. Merci de vous connecter à Internet et de redémarrer l'application.",
       "oldFormat": "Le '{0}' utilise toujours l'ancien format `.pde`. Souhaitez-vous utiliser le nouveau format `.ino`?",
       "partner": "Partenaire",
       "processing": "Traitement en cours",
@@ -204,7 +204,7 @@
     },
     "coreContribution": {
       "copyError": "Copier les messages d'erreur",
-      "noBoardSelected": "Aucune carte sélectionnée. Merci de sélectionner votre carte Arduino dans le menu Outils > Carte."
+      "noBoardSelected": "Aucune carte sélectionnée. Merci de sélectionner votre carte dans le menu Outils > Carte."
     },
     "createCloudCopy": "Push Sketch to Cloud",
     "daemon": {
@@ -267,9 +267,9 @@
       "keyword": "Tapez un mot clé",
       "privacyPolicy": "Politique de confidentialité",
       "reference": "Référence",
-      "search": "Rechercher sur Arduino.cc",
+      "search": "Rechercher sur PTSolns.com",
       "troubleshooting": "Dépannage",
-      "visit": "Visitez Arduino.cc"
+      "visit": "Visitez PTSolns.com"
     },
     "ide-updater": {
       "checkForUpdates": "Check for PTSolns IDE Updates",
@@ -279,17 +279,17 @@
       "donateLinkText": "Faites un don pour nous soutenir",
       "donateText": "Open source is love, {0}",
       "downloadButton": "Télécharger",
-      "downloadingNotice": "Téléchargement de la dernière version de l'IDE Arduino.",
-      "errorCheckingForUpdates": "Erreur lors de la vérification de la mise à jour de l'IDE Arduino.\n{0}",
+      "downloadingNotice": "Téléchargement de la dernière version de l'IDE PTSolns.",
+      "errorCheckingForUpdates": "Erreur lors de la vérification de la mise à jour de l'IDE PTSolns.\n{0}",
       "goToDownloadButton": "Aller au téléchargement",
-      "goToDownloadPage": "Une mise à jour pour l'IDE Arduino est disponible, mais nous ne sommes pas en mesure de la télécharger et de l'installer automatiquement. Veuillez vous rendre sur la page de téléchargement et télécharger la dernière version à partir de là.",
+      "goToDownloadPage": "Une mise à jour pour l'IDE PTSolns est disponible, mais nous ne sommes pas en mesure de la télécharger et de l'installer automatiquement. Veuillez vous rendre sur la page de téléchargement et télécharger la dernière version à partir de là.",
       "ideUpdaterDialog": "Mise à jour logicielle",
-      "newVersionAvailable": "Une nouvelle version de l'IDE Arduino ({0}) est disponible en téléchargement.",
-      "noUpdatesAvailable": "Il n'y a pas de mises à jour récentes disponibles pour l'IDE Arduino",
+      "newVersionAvailable": "Une nouvelle version de l'IDE PTSolns ({0}) est disponible en téléchargement.",
+      "noUpdatesAvailable": "Il n'y a pas de mises à jour récentes disponibles pour l'IDE PTSolns",
       "notNowButton": "Pas maintenant",
       "skipVersionButton": "Ignorer la version",
       "updateAvailable": "Mise à jour disponible",
-      "versionDownloaded": "L'IDE Arduino {0} a été téléchargé."
+      "versionDownloaded": "L'IDE PTSolns {0} a été téléchargé."
     },
     "installable": {
       "libraryInstallFailed": "Failed to install library: '{0}{1}'.",
@@ -297,7 +297,7 @@
     },
     "library": {
       "addZip": "Ajouter la bibliothèque .ZIP...",
-      "arduinoLibraries": "Bibliothèques Arduino",
+      "arduinoLibraries": "Bibliothèques PTSolns",
       "contributedLibraries": "Bibliothèques tierce-partie",
       "include": "Importer une bibliothèque",
       "installAll": "Tout installer",
@@ -369,7 +369,7 @@
       "browse": "Parcourir",
       "checkForUpdate": "Recevoir les notifications de mises à jour disponibles pour l’IDE, les cartes et les bibliothèques. Nécessite un redémarrage de l’IE après la modification. Activé par défaut.",
       "choose": "Choisir",
-      "cli.daemonDebug": "Activer la journalisation de débogage des appels gRPC vers le CLI Arduino. Un redémarrage de l’IDE est nécessaire pour que ce paramètre prenne effet. Désactivé par défaut.",
+      "cli.daemonDebug": "Activer la journalisation de débogage des appels gRPC vers le CLI PTSolns. Un redémarrage de l’IDE est nécessaire pour que ce paramètre prenne effet. Désactivé par défaut.",
       "cloud.enabled": "Vrai si les fonctions de synchronisation de croquis est activé. Par défaut, la valeur est vrai.",
       "cloud.pull.warn": "Vrai si les utilisateurs devrait être averti avant de pull un croquis sur le cloud. Par défaut, la valeur est vrai.",
       "cloud.push.warn": "Vrai, si les utilisateurs devrait être averti avant de push un croquis sur le cloud. Par défaut, la valeur est vrai.",
@@ -386,14 +386,14 @@
       "editorQuickSuggestions": "Suggestion rapide pour l'éditeur",
       "enterAdditionalURLs": "Entrer des URLs additionnelles, une par colonne",
       "files.inside.sketches": "Afficher les fichiers à l’intérieur de Sketches.",
-      "ide.updateBaseUrl": "L'URL de base où sont téléchargées les mises à jour. La valeur par défaut est 'https://downloads.arduino.cc/arduino-ide'.",
+      "ide.updateBaseUrl": "L'URL de base où sont téléchargées les mises à jour. La valeur par défaut est 'https://ptsolns.com/ide'.",
       "ide.updateChannel": "Canal de mise à jour à partir de 'stable' est la version stable, 'nightly' est la dernière version de développement.",
       "interfaceScale": "Échelle de l'interface",
       "invalid.editorFontSize": "Police de l'éditeur invalide. La taille doit être un entier positif.",
       "invalid.sketchbook.location": "Localisation invalide du croquis : {0}",
       "invalid.theme": "Thème invalide.",
-      "language.asyncWorkers": "Number of async workers used by the Arduino Language Server (clangd). Background index also uses this many workers. The minimum value is 0, and the maximum is 8. When it is 0, the language server uses all available cores. The default value is 0.",
-      "language.log": "Vrai si le serveur de langage Arduino devrait générer des fichiers logs dans le dossier du croquis. Si non faux. La valeur par défaut est faux.",
+      "language.asyncWorkers": "Number of async workers used by the PTSolns Language Server (clangd). Background index also uses this many workers. The minimum value is 0, and the maximum is 8. When it is 0, the language server uses all available cores. The default value is 0.",
+      "language.log": "Vrai si le serveur de langage PTSolns devrait générer des fichiers logs dans le dossier du croquis. Si non faux. La valeur par défaut est faux.",
       "language.realTimeDiagnostics": "Si c'est vrai, le serveur de langue fournit des diagnostics en temps réel lors de la saisie dans l'éditeur. C'est faux par défaut.",
       "manualProxy": "Configuration manuelle du proxy",
       "monitor": {

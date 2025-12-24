@@ -77,7 +77,7 @@
       "uploadingCertificates": "上传证书。"
     },
     "checkForUpdates": {
-      "checkForUpdates": "检查 Arduino 更新",
+      "checkForUpdates": "检查 PTSolns 更新",
       "installAll": "全部安装",
       "noUpdates": "没有可用的更新。",
       "promptUpdateBoards": "您的某些开发板有可用更新。",
@@ -144,7 +144,7 @@
       "noBoardSelected": "没有选择开发板",
       "noSketchOpened": "未打开项目",
       "notConnected": "[没有连接]",
-      "offlineIndicator": "你似乎处于离线状态。如果没有网络连接，Arduino CLI 可能无法下载所需的资源，并可能导致故障。请连接网络并重新启动程序。",
+      "offlineIndicator": "你似乎处于离线状态。如果没有网络连接，PTSolns CLI 可能无法下载所需的资源，并可能导致故障。请连接网络并重新启动程序。",
       "oldFormat": "‘{0}’ 仍然使用旧的 ‘.pde’ 格式。是否要切换到新的 ‘.ino’ 扩展？",
       "partner": "合作伙伴",
       "processing": "正在处理中",
@@ -204,7 +204,7 @@
     },
     "coreContribution": {
       "copyError": "复制错误信息",
-      "noBoardSelected": "未选择开发板。请从工具 > 板菜单中选择您的 Arduino 开发板。"
+      "noBoardSelected": "未选择开发板。请从工具 > 板菜单中选择您的 开发板。"
     },
     "createCloudCopy": "推送项目到云端",
     "daemon": {
@@ -267,9 +267,9 @@
       "keyword": "输入关键字",
       "privacyPolicy": "隐私政策",
       "reference": "参考",
-      "search": "在 Arduino.cc 搜索",
+      "search": "在 PTSolns.com 搜索",
       "troubleshooting": "故障排除",
-      "visit": "访问 Arduino.cc"
+      "visit": "访问 PTSolns.com"
     },
     "ide-updater": {
       "checkForUpdates": "检查 PTSolns IDE 更新",
@@ -282,7 +282,7 @@
       "downloadingNotice": "正在下载 PTSolns IDE 的最新版本。",
       "errorCheckingForUpdates": "检查 PTSolns IDE 更新时出错。{0}",
       "goToDownloadButton": "去下载",
-      "goToDownloadPage": "Arduino IDE可以更新，但我们无法自动下载和安装。请转到下载页面并下载最新版本手动安装。",
+      "goToDownloadPage": "PTSolns IDE可以更新，但我们无法自动下载和安装。请转到下载页面并下载最新版本手动安装。",
       "ideUpdaterDialog": "软件更新",
       "newVersionAvailable": "新版本的 PTSolns IDE（{0}）可供下载。",
       "noUpdatesAvailable": "目前 PTSolns IDE 没有可更新的版本。",
@@ -297,7 +297,7 @@
     },
     "library": {
       "addZip": "添加 .ZIP 库...",
-      "arduinoLibraries": "Arduino 库",
+      "arduinoLibraries": "PTSolns 库",
       "contributedLibraries": "贡献库",
       "include": "导入库",
       "installAll": "全部安装",
@@ -369,7 +369,7 @@
       "browse": "浏览",
       "checkForUpdate": "接收 IDE、开发板和库的可用更新通知。更改后需要重启 IDE。默认情况为开启。",
       "choose": "选择",
-      "cli.daemonDebug": "启用对 Arduino CLI 的 gRPC 调用的调试记录。该设置需要重新启动 IDE 才能生效。默认不启用。",
+      "cli.daemonDebug": "启用对 PTSolns CLI 的 gRPC 调用的调试记录。该设置需要重新启动 IDE 才能生效。默认不启用。",
       "cloud.enabled": "True 则启用项目同步功能。默认为 True。",
       "cloud.pull.warn": "True 则在拉取 cloud 项目之前警告用户。默认为 True。",
       "cloud.push.warn": "True 则在推送 cloud 项目之前警告用户。默认为 True。",
@@ -386,14 +386,14 @@
       "editorQuickSuggestions": "编辑快速建议",
       "enterAdditionalURLs": "输入补充地址，每行一个。",
       "files.inside.sketches": "显示项目中的文件夹",
-      "ide.updateBaseUrl": "下载更新的网址。默认为 ‘https://downloads.arduino.cc/arduino-ide’",
+      "ide.updateBaseUrl": "下载更新的网址。默认为 ‘https://ptsolns.com/ide’",
       "ide.updateChannel": "在发布频道中获取更新信息。‘stable’ 是稳定的版本，‘nightly’ 是最新的开发版本。",
       "interfaceScale": "界面比例",
       "invalid.editorFontSize": "编辑器字体大小无效。它必须是正整数。",
       "invalid.sketchbook.location": "无效的项目文件夹地址：{0}",
       "invalid.theme": "无效的主题。",
-      "language.asyncWorkers": "Arduino 语言服务器（clangd）使用的异步工作线程数。 后台索引也使用相同数量的工作线程。 最小值为 0，最大值为 8。 当值为 0 时，语言服务器将使用所有可用的核心。 默认值为 0。",
-      "language.log": "True 则 Arduino Language Server 将日志文件生成到项目文件夹中。默认为 False。",
+      "language.asyncWorkers": "PTSolns 语言服务器（clangd）使用的异步工作线程数。 后台索引也使用相同数量的工作线程。 最小值为 0，最大值为 8。 当值为 0 时，语言服务器将使用所有可用的核心。 默认值为 0。",
+      "language.log": "True 则 PTSolns Language Server 将日志文件生成到项目文件夹中。默认为 False。",
       "language.realTimeDiagnostics": " True 则 language server 在编辑器中输入时提供实时诊断。默认为 False。",
       "manualProxy": "手动配置代理",
       "monitor": {
@@ -411,7 +411,7 @@
       },
       "showVerbose": "显示详细输出",
       "sketch": {
-        "inoBlueprint": "指定默认 “.ino” 模板文件的绝对路径。如果指定，则该模板文件的内容将被用于 IDE 创建的每一个新 sketch。如果未指定，则使用Arduino默认的内容来创建新 sketch。不可用的模板文件将被自动忽略。**需要重启IDE** 以使此设置生效。"
+        "inoBlueprint": "指定默认 “.ino” 模板文件的绝对路径。如果指定，则该模板文件的内容将被用于 IDE 创建的每一个新 sketch。如果未指定，则使用PTSolns默认的内容来创建新 sketch。不可用的模板文件将被自动忽略。**需要重启IDE** 以使此设置生效。"
       },
       "sketchbook.location": "项目文件夹地址",
       "sketchbook.showAllFiles": "True 则显示项目中的所有项目文件。默认情况下为 False。",

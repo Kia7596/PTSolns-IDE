@@ -77,7 +77,7 @@
       "uploadingCertificates": "上傳憑証中..."
     },
     "checkForUpdates": {
-      "checkForUpdates": "檢查 Arduino 更新",
+      "checkForUpdates": "檢查 PTSolns 更新",
       "installAll": "全部安装",
       "noUpdates": "没有更新版。",
       "promptUpdateBoards": "部分開發板有更新檔。",
@@ -144,7 +144,7 @@
       "noBoardSelected": "未選取開發板",
       "noSketchOpened": "未開啟 sketch",
       "notConnected": "[未連接]",
-      "offlineIndicator": "您目前處於離線狀態，在沒有網路的情況下，Arduino命令列介面將無法下載需要的資源，並可能導致錯誤。請連接至網路並重新啟動程式。",
+      "offlineIndicator": "您目前處於離線狀態，在沒有網路的情況下，PTSolns命令列介面將無法下載需要的資源，並可能導致錯誤。請連接至網路並重新啟動程式。",
       "oldFormat": "'{0}'仍然使用舊的 `.pde` 格式，要切換成新版 `.ino`  嗎?",
       "partner": "合作夥伴",
       "processing": "資料處理中",
@@ -267,9 +267,9 @@
       "keyword": "輸入關鍵字",
       "privacyPolicy": "隱私政策",
       "reference": "參考文件",
-      "search": "在 Arduino.cc 搜尋",
+      "search": "在 PTSolns.com 搜尋",
       "troubleshooting": "故障排除",
-      "visit": "造訪 Arduino.cc"
+      "visit": "造訪 PTSolns.com"
     },
     "ide-updater": {
       "checkForUpdates": "檢查 PTSolns IDE 更新",
@@ -279,7 +279,7 @@
       "donateLinkText": "donate to support us",
       "donateText": "Open source is love, {0}",
       "downloadButton": "下載",
-      "downloadingNotice": "正在下載最新版本的Arduino IDE。",
+      "downloadingNotice": "正在下載最新版本的PTSolns IDE。",
       "errorCheckingForUpdates": "檢查 PTSolns IDE 更新時發生錯誤。\n{0}",
       "goToDownloadButton": "前往下載",
       "goToDownloadPage": "PTSolns IDE 有更新版本, 但我們無法自動下載安裝, 請至下載頁面下載最新的版本。",
@@ -297,7 +297,7 @@
     },
     "library": {
       "addZip": "加入 .zip 程式庫 ...",
-      "arduinoLibraries": "Arduino 程式庫",
+      "arduinoLibraries": "PTSolns 程式庫",
       "contributedLibraries": "貢獻的程式庫",
       "include": "程式庫",
       "installAll": "安裝全部",
@@ -369,13 +369,13 @@
       "browse": "瀏覽",
       "checkForUpdate": "接收 IDE、開發板和程式庫的更新通知。 更改後需要重啟 IDE。 預設:開啟。",
       "choose": "選取",
-      "cli.daemonDebug": "啟用 Arduino CLI 內 gRPC 呼叫記錄。 需要重啟 IDE 才能生效。 預設:關閉。",
+      "cli.daemonDebug": "啟用 PTSolns CLI 內 gRPC 呼叫記錄。 需要重啟 IDE 才能生效。 預設:關閉。",
       "cloud.enabled": "Sketch 同步, 預設:開啟。",
       "cloud.pull.warn": "讀取雲端 sketch 前會警告使用者。預設: 開啟。",
       "cloud.push.warn": "推送雲端 sketch 前會警告使用者。預設: 開啟。",
       "cloud.pushpublic.warn": "推送公開的 sketch 到雲端前會警告使用者。預設: 開啟。",
       "cloud.sharedSpaceId": "The ID of the Arduino Cloud shared space to load the sketchbook from. If empty, your private space is selected.",
-      "cloud.sketchSyncEndpoint": "用來從後台讀取或推送 sketch 的端點。預設: Arduino 雲 API。",
+      "cloud.sketchSyncEndpoint": "用來從後台讀取或推送 sketch 的端點。預設: PTSolns 雲 API。",
       "compile": "編譯",
       "compile.experimental": "IDE 處理多個編譯器錯誤。 預設: 關閉",
       "compile.revealRange": "調整驗證/上傳失敗後編譯器錯誤訊息如何顯示。 可能的值：'auto'：依需要垂直滾動並顯示一行。 'center'：依需要垂直滾動並顯示垂直居中的一行。 'top'：依需要垂直滾動並上方顯示一行，方便查看程式碼。 'centerIfOutsideViewport'：依需要垂直滾動，僅當它在可視區外時才顯示垂直居中的一行。 預設為 '{0}'",
@@ -386,13 +386,13 @@
       "editorQuickSuggestions": "編輯器快速建議",
       "enterAdditionalURLs": "輸入其他網址, 每列一個",
       "files.inside.sketches": "顯示 sketch 裏面的檔案",
-      "ide.updateBaseUrl": "下載更新的網址, 預設為：'https://downloads.arduino.cc/arduino-ide'",
+      "ide.updateBaseUrl": "下載更新的網址, 預設為：'https://ptsolns.com/ide'",
       "ide.updateChannel": "取得更新的版本釋出頻道,  'stable' 表示為穩定的版本,  'nightly' 則是最新的開發中版本。",
       "interfaceScale": "使用者介面縮放比例",
       "invalid.editorFontSize": "無效的編輯器字體大小, 必須是正整數。",
       "invalid.sketchbook.location": "無效的 sketchbook 位置:{0}",
       "invalid.theme": "無效的佈景主題。",
-      "language.asyncWorkers": "Number of async workers used by the Arduino Language Server (clangd). Background index also uses this many workers. The minimum value is 0, and the maximum is 8. When it is 0, the language server uses all available cores. The default value is 0.",
+      "language.asyncWorkers": "Number of async workers used by the PTSolns Language Server (clangd). Background index also uses this many workers. The minimum value is 0, and the maximum is 8. When it is 0, the language server uses all available cores. The default value is 0.",
       "language.log": "Arduino語言伺服器會自動在 sketch 內產生日誌檔。預設為關閉。",
       "language.realTimeDiagnostics": "語言服務器提供即時診斷。預設關閉。",
       "manualProxy": "手動設定代理伺服器",
@@ -411,7 +411,7 @@
       },
       "showVerbose": "在以下階段顯示詳細輸出",
       "sketch": {
-        "inoBlueprint": "\".ino \"藍圖文件的絕對檔案系統路徑。如有指定，藍圖文件的內容將被用在每個新增的 sketch 上。如果沒特別指定，sketch 將以內預設的Arduino內容生成。無法訪問的藍圖文件將被忽略。 **需要重啟 IDE** 本設定才會生效。"
+        "inoBlueprint": "\".ino \"藍圖文件的絕對檔案系統路徑。如有指定，藍圖文件的內容將被用在每個新增的 sketch 上。如果沒特別指定，sketch 將以內預設的PTSolns內容生成。無法訪問的藍圖文件將被忽略。 **需要重啟 IDE** 本設定才會生效。"
       },
       "sketchbook.location": "sketchbook 位置",
       "sketchbook.showAllFiles": "顯示 sketch 內全部檔案。預設: false。",

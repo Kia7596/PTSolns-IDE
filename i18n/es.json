@@ -77,7 +77,7 @@
       "uploadingCertificates": "Cargando certificados."
     },
     "checkForUpdates": {
-      "checkForUpdates": "Comprobar Actualizaciones para Arduino",
+      "checkForUpdates": "Comprobar Actualizaciones para PTSolns",
       "installAll": "Instalar todo",
       "noUpdates": "No se han encontrado actualizaciones recientes disponibles",
       "promptUpdateBoards": "Actualizaciones disponibles para alguna de tus placas",
@@ -144,7 +144,7 @@
       "noBoardSelected": "Ninguna placa seleccionada.",
       "noSketchOpened": "No sketch opened",
       "notConnected": "[no conectado]",
-      "offlineIndicator": "Al parecer no estás en línea. Sin una conexión a internet, el CLI de Arduino no podrá descargar los recursos necesarios, lo cual puede ocasionar fallos. Por favor, conecte a internet y reinicie la aplicación.",
+      "offlineIndicator": "Al parecer no estás en línea. Sin una conexión a internet, el CLI de PTSolns no podrá descargar los recursos necesarios, lo cual puede ocasionar fallos. Por favor, conecte a internet y reinicie la aplicación.",
       "oldFormat": "La página '{0}' sigue utilizando el formato antiguo `.pde`. ¿Quieres cambiar a la nueva extensión `.ino`?",
       "partner": "Socio",
       "processing": "Procesando",
@@ -204,7 +204,7 @@
     },
     "coreContribution": {
       "copyError": "Copiar mensajes de error",
-      "noBoardSelected": "Ninguna placa seleccionada. Por favor selecciona una placa Arduino en el menú Herramientas > Placas"
+      "noBoardSelected": "Ninguna placa seleccionada. Por favor selecciona una placa en el menú Herramientas > Placas"
     },
     "createCloudCopy": "Push Sketch to Cloud",
     "daemon": {
@@ -267,9 +267,9 @@
       "keyword": "Escribe una palabra clave",
       "privacyPolicy": "Política de privacidad",
       "reference": "Referencia",
-      "search": "Buscar en Arduino.cc",
+      "search": "Buscar en PTSolns.com",
       "troubleshooting": "Resolución de problemas",
-      "visit": "Visitar Arduino.cc"
+      "visit": "Visitar PTSolns.com"
     },
     "ide-updater": {
       "checkForUpdates": "Comprobar actualizaciones para PTSolns IDE",
@@ -280,7 +280,7 @@
       "donateText": "Open source is love, {0}",
       "downloadButton": "Descargar",
       "downloadingNotice": "Descargando la última versión del PTSolns IDE.",
-      "errorCheckingForUpdates": "Error al comprobar las actualizaciones del IDE de Arduino.\n{0}",
+      "errorCheckingForUpdates": "Error al comprobar las actualizaciones del IDE de PTSolns.\n{0}",
       "goToDownloadButton": "Actualización de Software",
       "goToDownloadPage": "Una nueva versión del PTSolns IDE está disponible, pero no es posible descargarla e instalarla automáticamente. Por favor, diríjase a la página de descarga y descargue la última versión desde allí.",
       "ideUpdaterDialog": "Actualización de Software",
@@ -297,7 +297,7 @@
     },
     "library": {
       "addZip": "Añadir biblioteca .ZIP...",
-      "arduinoLibraries": "Bibliotecas de Arduino",
+      "arduinoLibraries": "Bibliotecas de PTSolns",
       "contributedLibraries": "Bibliotecas aportadas",
       "include": "Incluir biblioteca",
       "installAll": "Instalar todo",
@@ -369,7 +369,7 @@
       "browse": "Explorar",
       "checkForUpdate": "Recibe notificaciones sobre actualizaciones disponibles del IDE, placas y bibliotecas. Requiere reiniciar el IDE despues de hacer cambios. Por defecto está habilitado.",
       "choose": "Elija",
-      "cli.daemonDebug": "Habilitar logueo de depuración de las llamadas gRPC al Arduino CLI. Requiere un reinicio del IDE para tener efecto. Deshabilitado por defecto.",
+      "cli.daemonDebug": "Habilitar logueo de depuración de las llamadas gRPC al PTSolns CLI. Requiere un reinicio del IDE para tener efecto. Deshabilitado por defecto.",
       "cloud.enabled": "Verdadero si las funciones de sincronización del sketch están activadas. Verdadero por defecto.",
       "cloud.pull.warn": "Verdadero si se debe advertir a los usuarios antes de sacar un boceto de la nube. El valor predeterminado es verdadero.",
       "cloud.push.warn": "Verdadero si se debe advertir a los usuarios antes de enviar un boceto a la nube. El valor predeterminado es verdadero.",
@@ -386,14 +386,14 @@
       "editorQuickSuggestions": "Sugerencias rápidas del editor",
       "enterAdditionalURLs": "Introduzca otras URLs, una por fila",
       "files.inside.sketches": "Ver los ficheros dentro de los bocetos",
-      "ide.updateBaseUrl": "La URL base desde la que descargar las actualizaciones. El valor predeterminado es 'https://downloads.arduino.cc/arduino-ide'",
+      "ide.updateBaseUrl": "La URL base desde la que descargar las actualizaciones. El valor predeterminado es 'https://ptsolns.com/ide'",
       "ide.updateChannel": "Canal de publicación desde el que se actualiza. 'stable' es la versión estable, 'nightly' es la última versión de desarrollo.",
       "interfaceScale": "Escala de la interfaz",
       "invalid.editorFontSize": "Tamaño de fuente del editor no válido. Debe ser un número entero positivo.",
       "invalid.sketchbook.location": "Ruta del sketchbook no válida: {0}",
       "invalid.theme": "Tema no válido.",
-      "language.asyncWorkers": "Number of async workers used by the Arduino Language Server (clangd). Background index also uses this many workers. The minimum value is 0, and the maximum is 8. When it is 0, the language server uses all available cores. The default value is 0.",
-      "language.log": "Verdadero si el Servidor de Lenguaje Arduino debe generar archivos de registro en la carpeta del sketch. En caso contrario, falso. Por defecto es falso.",
+      "language.asyncWorkers": "Number of async workers used by the PTSolns Language Server (clangd). Background index also uses this many workers. The minimum value is 0, and the maximum is 8. When it is 0, the language server uses all available cores. The default value is 0.",
+      "language.log": "Verdadero si el Servidor de Lenguaje PTSolns debe generar archivos de registro en la carpeta del sketch. En caso contrario, falso. Por defecto es falso.",
       "language.realTimeDiagnostics": "Si está habilitado, el lenguaje proveerá diagnoticos en tiepo real meintras se teclea en el editor. Deshabilitado por defecto.",
       "manualProxy": "Configuración manual del proxy",
       "monitor": {
