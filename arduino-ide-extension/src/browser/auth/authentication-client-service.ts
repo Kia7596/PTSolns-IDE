@@ -9,13 +9,10 @@ import {
   CommandContribution,
 } from '@theia/core/lib/common/command';
 import {
-  AuthOptions,
   AuthenticationService,
   AuthenticationServiceClient,
   AuthenticationSession,
-  authServerPort,
 } from '../../common/protocol/authentication-service';
-import { CloudUserCommands } from './cloud-user-commands';
 import { ArduinoPreferences } from '../arduino-preferences';
 
 @injectable()
@@ -34,7 +31,6 @@ export class AuthenticationClientService
   @inject(ArduinoPreferences)
   protected readonly arduinoPreferences: ArduinoPreferences;
 
-  protected authOptions: AuthOptions;
   protected _session: AuthenticationSession | undefined;
   protected readonly toDispose = new DisposableCollection();
   protected readonly onSessionDidChangeEmitter = new Emitter<
@@ -50,24 +46,12 @@ export class AuthenticationClientService
       .session()
       .then((session) => this.notifySessionDidChange(session));
 
-    this.setOptions().then(() => this.service.initAuthSession());
+    this.service.initAuthSession();
 
     this.arduinoPreferences.onPreferenceChanged((event) => {
       if (event.preferenceName.startsWith('arduino.auth.')) {
-        this.setOptions();
+        // Removed setOptions as it was cloud-specific
       }
-    });
-  }
-
-  setOptions(): Promise<void> {
-    return this.service.setOptions({
-      redirectUri: `http://localhost:${authServerPort}/callback`,
-      responseType: 'code',
-      clientID: this.arduinoPreferences['arduino.auth.clientID'],
-      domain: this.arduinoPreferences['arduino.auth.domain'],
-      audience: this.arduinoPreferences['arduino.auth.audience'],
-      registerUri: this.arduinoPreferences['arduino.auth.registerUri'],
-      scopes: ['openid', 'profile', 'email', 'offline_access'],
     });
   }
 
@@ -81,16 +65,6 @@ export class AuthenticationClientService
   }
 
   registerCommands(registry: CommandRegistry): void {
-    registry.registerCommand(CloudUserCommands.LOGIN, {
-      execute: () => this.service.login(),
-      isEnabled: () => !this._session,
-      isVisible: () => !this._session,
-    });
-    registry.registerCommand(CloudUserCommands.LOGOUT, {
-      execute: () => this.service.logout(),
-      isEnabled: () => !!this._session,
-      isVisible: () => !!this._session,
-    });
   }
 
   notifySessionDidChange(session: AuthenticationSession | undefined): void {

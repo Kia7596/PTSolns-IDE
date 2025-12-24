@@ -5,10 +5,6 @@ import { CloudSketchbookTreeModel } from './cloud-sketchbook-tree-model';
 import { AuthenticationClientService } from '../../auth/authentication-client-service';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { CloudSketchbookTree } from './cloud-sketchbook-tree';
-import {
-  CloudUserCommands,
-  LEARN_MORE_URL,
-} from '../../auth/cloud-user-commands';
 import { NodeProps } from '@theia/core/lib/browser/tree/tree-widget';
 import { TreeNode } from '@theia/core/lib/browser/tree';
 import { CompositeTreeNode } from '@theia/core/lib/browser';
@@ -157,20 +153,12 @@ export class CloudSketchbookTreeWidget extends SketchbookTreeWidget {
         </div>
         <button
           className="theia-button sign-in-cta"
-          onClick={() =>
-            this.commandRegistry.executeCommand(CloudUserCommands.LOGIN.id)
-          }
         >
           {nls.localize('arduino/cloud/signIn', 'SIGN IN')}
         </button>
         <div className="center item">
           <div
             className="link sign-in-learnmore"
-            onClick={() =>
-              this.windowService.openNewWindow(LEARN_MORE_URL, {
-                external: true,
-              })
-            }
           >
             {nls.localize('arduino/cloud/learnMore', 'Learn more')}
           </div>
