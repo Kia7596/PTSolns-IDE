@@ -1,5 +1,9 @@
 {
   "arduino": {
+    "ch340-driver": {
+        "install": "Install CH340 Driver",
+        "instructions": "CH340G Driver Installation Instructions"
+    },
     "about": {
       "detail": "Version: {0}\nDate: {1}{2}\nCLI Version: {3}\n\n{4}",
       "label": "About {0}"
@@ -269,7 +273,8 @@
       "reference": "Reference",
       "search": "Search on PTSolns.com",
       "troubleshooting": "Troubleshooting",
-      "visit": "Visit PTSolns.com"
+      "visit": "Visit PTSolns.com",
+      "ptsolnsGpt": "PTSolns IDE GPT"
     },
     "ide-updater": {
       "checkForUpdates": "Check for PTSolns IDE Updates",
@@ -524,8 +529,8 @@
     },
     "versionWelcome": {
       "cancelButton": "Maybe later",
-      "donateButton": "Donate now",
-      "donateMessage": "PTSolns is committed to keeping software free and open-source for everyone. Your donation helps us develop new features, improve libraries, and support millions of users worldwide.",
+      "donateButton": "Sponsor now",
+      "donateMessage": "PTSolns is committed to keeping software free and open-source for everyone. Your sponsorship helps us develop new features, improve libraries, and support millions of users worldwide.",
       "donateMessage2": "Please consider supporting our work on the free open source PTSolns IDE.",
       "title": "Welcome to a new version of the PTSolns IDE!",
       "titleWithVersion": "Welcome to the new PTSolns IDE {0}!"

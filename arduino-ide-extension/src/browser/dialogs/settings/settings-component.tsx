@@ -45,6 +45,16 @@ const maxFontSize = InterfaceScale.FontSize.MAX;
 const minFontSize = InterfaceScale.FontSize.MIN;
 const fontSizeStep = InterfaceScale.FontSize.STEP;
 
+const languageNames: Record<string, string> = {
+  'de': 'Deutsch',
+  'en': 'English',
+  'es': 'Español',
+  'fr': 'Français',
+  'zh_TW': '繁體中文 (台灣)',
+  'zh-Hant': '繁體中文',
+  'zh': '简体中文',
+};
+
 export class SettingsComponent extends React.Component<
   SettingsComponent.Props,
   SettingsComponent.State
@@ -380,9 +390,7 @@ export class SettingsComponent extends React.Component<
     const key = plain ? language : language.languageId;
     const value = plain ? language : language.languageId;
     const label = plain
-      ? language === 'en'
-        ? 'English'
-        : language
+      ? languageNames[language] || language
       : language.localizedLanguageName ||
         language.languageName ||
         language.languageId;

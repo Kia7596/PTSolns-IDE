@@ -138,51 +138,39 @@ export class SettingsService {
 
   protected async loadSettings(): Promise<Settings> {
     await this.preferenceService.ready;
-    const [
-      languages,
-      currentLanguage,
-      editorFontSize,
-      themeId,
-      autoSave,
-      quickSuggestions,
-      autoScaleInterface,
-      interfaceScale,
-      verboseOnCompile,
-      compilerWarnings,
-      verboseOnUpload,
-      verifyAfterUpload,
-      sketchbookShowAllFiles,
-      cliConfig,
-    ] = await Promise.all([
-      ['en', ...(await this.localizationProvider.getAvailableLanguages())],
-      this.localizationProvider.getCurrentLanguage(),
-      this.preferenceService.get<number>(FONT_SIZE_SETTING, 12),
-      this.preferenceService.get<string>(
+    const i18nLanguages = ['de', 'en', 'es', 'fr', 'zh_TW', 'zh-Hant', 'zh'];
+    const languages = i18nLanguages;
+    let currentLanguage = await this.localizationProvider.getCurrentLanguage();
+    if (!languages.includes(currentLanguage)) {
+        currentLanguage = languages.includes('en') ? 'en' : languages[0];
+    }
+
+    const editorFontSize = await this.preferenceService.get<number>(FONT_SIZE_SETTING, 12);
+    const themeId = await this.preferenceService.get<string>(
         'workbench.colorTheme',
         DefaultTheme.defaultForOSTheme(
-          FrontendApplicationConfigProvider.get().defaultTheme
+            FrontendApplicationConfigProvider.get().defaultTheme
         )
-      ),
-      this.preferenceService.get<Settings.AutoSave>(
+    );
+    const autoSave = await this.preferenceService.get<Settings.AutoSave>(
         AUTO_SAVE_SETTING,
         Settings.AutoSave.DEFAULT_ON
-      ),
-      this.preferenceService.get<
+    );
+    const quickSuggestions = await this.preferenceService.get<
         Record<'other' | 'comments' | 'strings', boolean>
       >(QUICK_SUGGESTIONS_SETTING, {
         other: false,
         comments: false,
         strings: false,
-      }),
-      this.preferenceService.get<boolean>(AUTO_SCALE_SETTING, true),
-      this.preferenceService.get<number>(ZOOM_LEVEL_SETTING, 0),
-      this.preferenceService.get<boolean>(COMPILE_VERBOSE_SETTING, true),
-      this.preferenceService.get<any>(COMPILE_WARNINGS_SETTING, 'None'),
-      this.preferenceService.get<boolean>(UPLOAD_VERBOSE_SETTING, true),
-      this.preferenceService.get<boolean>(UPLOAD_VERIFY_SETTING, true),
-      this.preferenceService.get<boolean>(SHOW_ALL_FILES_SETTING, false),
-      this.configService.getConfiguration(),
-    ]);
+      });
+    const autoScaleInterface = await this.preferenceService.get<boolean>(AUTO_SCALE_SETTING, true);
+    const interfaceScale = await this.preferenceService.get<number>(ZOOM_LEVEL_SETTING, 0);
+    const verboseOnCompile = await this.preferenceService.get<boolean>(COMPILE_VERBOSE_SETTING, true);
+    const compilerWarnings = await this.preferenceService.get<any>(COMPILE_WARNINGS_SETTING, 'None');
+    const verboseOnUpload = await this.preferenceService.get<boolean>(UPLOAD_VERBOSE_SETTING, true);
+    const verifyAfterUpload = await this.preferenceService.get<boolean>(UPLOAD_VERIFY_SETTING, true);
+    const sketchbookShowAllFiles = await this.preferenceService.get<boolean>(SHOW_ALL_FILES_SETTING, false);
+    const cliConfig = await this.configService.getConfiguration();
     const {
       config = {
         additionalUrls: [],
