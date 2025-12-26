@@ -138,7 +138,7 @@ export class FirstStartupInstaller extends Contribution {
 
       // Report all errors
       boardInstallationErrors.forEach(error => {
-        this.messageService.error(`Could not complete initial setup: ${error.message}`);
+        console.error(`Could not complete initial setup: ${error.message}`);
       });
 
       // Set flag only if no critical errors occurred
