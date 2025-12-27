@@ -97,12 +97,13 @@ env:
         job-transfer-artifact-suffix: Windows_64bit
         mergeable-channel-file: 'false'
       artifacts:
-        - path: '*Windows_64bit.exe'
+        - path: '*.exe'
           name: Windows_X86-64_interactive_installer
-        - path: '*Windows_64bit.msi'
+        - path: '*.msi'
           name: Windows_X86-64_MSI
-        - path: '*Windows_64bit.zip'
+        - path: '*.zip'
           name: Windows_X86-64_zip
+
 
     - config:
         name: Linux
