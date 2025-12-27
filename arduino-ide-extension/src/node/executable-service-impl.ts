@@ -63,6 +63,7 @@ export class ExecutableServiceImpl implements ExecutableService {
         const child = spawn(command, args, {
           detached: true,
           stdio: 'inherit',
+          shell: (platform === 'win32'),
         });
 
         child.on('close', (code) => {
