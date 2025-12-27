@@ -461,12 +461,22 @@ jobs:
             Get-AuthenticodeSignature $_.FullName | Format-List
           }
 
-
-
       - name: Build Windows installers from signed folder (prepackaged)
         if: matrix.config.name == 'Windows'
         run: |
           yarn --cwd electron-app electron-builder --win --prepackaged dist/win-unpacked
+
+      - name: List installer outputs (debug)
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "=== Searching for .exe/.msi in electron-app/dist (excluding win-unpacked) ==="
+          Get-ChildItem "electron-app\dist" -Recurse -Include *.exe,*.msi -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -notmatch '\\win-unpacked\\' } |
+            Select-Object FullName,Length,LastWriteTime |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 50 |
+            Format-Table -AutoSize
 
 
       - name: Debug Windows installer output folders
@@ -498,8 +508,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path "electron-app\dist\build-artifacts" | Out-Null
 
           $out = "electron-app\dist\build-artifacts"
-          $files = Get-ChildItem "electron-app\dist" -Recurse -Include *Windows_64bit.exe,*Windows_64bit.msi,*Windows_64bit.zip -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -notmatch '\\win-unpacked\\' -and $_.FullName -notmatch '\\build-artifacts\\' }
+          $files = Get-ChildItem "electron-app\dist" -Recurse -Include *.exe,*.msi,*.zip -ErrorAction SilentlyContinue |
+             Where-Object { $_.FullName -notmatch '\\win-unpacked\\' -and $_.FullName -notmatch '\\build-artifacts\\' }
+
 
 
           if (-not $files -or $files.Count -eq 0) {
@@ -518,15 +529,21 @@ jobs:
 
       # ADDED: Sign Windows artifacts (Windows only)
       - name: Sign Windows installers (Azure Trusted Signing)
-        if: matrix.config.name == 'Windows'
+        if: >
+          matrix.config.name == 'Windows' &&
+          (
+            hashFiles('electron-app/dist/build-artifacts/*.exe') != '' ||
+            hashFiles('electron-app/dist/build-artifacts/*.msi') != ''
+          )
         uses: azure/trusted-signing-action@v0
         with:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
-          # NOTE: action expects a filter list like "exe,msi"
+          files-folder: electron-app/dist/build-artifacts
           files-folder-filter: exe,msi
+          files-folder-recurse: false
+    
 
 
 
