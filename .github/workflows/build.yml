@@ -433,7 +433,13 @@ jobs:
   
   
       - name: Sign internal app binaries (asar.unpacked)
-        if: matrix.config.name == 'Windows'
+        if: >
+          matrix.config.name == 'Windows' &&
+          (
+            hashFiles('electron-app/dist/win-unpacked/resources/app.asar.unpacked/**/*.exe') != '' ||
+            hashFiles('electron-app/dist/win-unpacked/resources/app.asar.unpacked/**/*.dll') != ''
+          )
+
         uses: azure/trusted-signing-action@v0
         with:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
