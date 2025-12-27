@@ -36,7 +36,7 @@ export class ExecutableServiceImpl implements ExecutableService {
 
     if (platform === 'win32') {
       command = `"${path.join(driverDir, 'ch340.exe')}"`;
-      args = []; // Silent installation for Windows installer
+      args = ['/S']; // Silent installation for Windows installer
     } else if (platform === 'darwin') {
       const driverPkgPath = path.join(driverDir, 'ch340.pkg');
       try {
@@ -62,27 +62,23 @@ export class ExecutableServiceImpl implements ExecutableService {
       try {
         const child = spawn(command, args, {
           detached: true,
-          stdio: 'pipe',
+          stdio: 'inherit', // Use 'inherit' for better visibility of installer output
           shell: true,
-        });
-
-        child.stdout.on('data', (data) => {
-          console.log(`Installer stdout: ${data}`);
-        });
-
-        child.stderr.on('data', (data) => {
-          console.error(`Installer stderr: ${data}`);
         });
 
         child.on('close', (code) => {
           console.log(`Installer process exited with code ${code}`);
+          if (code !== 0) {
+            console.error(`CH340 driver installation failed with exit code ${code} on ${platform}.`);
+          }
         });
 
         child.on('error', (err) => {
           console.error(`Failed to start installer process: ${err}`);
+          throw err;
         });
 
-        child.unref(); // Allow the parent process to exit independently
+        child.unref();
         console.log(`Driver installation process started for ${platform}. PID: ${child.pid}`);
       } catch (error) {
         console.error(`Error executing driver installer for ${platform}:`, error);
