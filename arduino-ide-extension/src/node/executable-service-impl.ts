@@ -62,8 +62,7 @@ export class ExecutableServiceImpl implements ExecutableService {
       try {
         const child = spawn(command, args, {
           detached: true,
-          stdio: 'inherit', // Use 'inherit' for better visibility of installer output
-          shell: true,
+          stdio: 'inherit',
         });
 
         child.on('close', (code) => {
