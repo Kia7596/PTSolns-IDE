@@ -138,7 +138,9 @@ export class FirstStartupInstaller extends Contribution {
 
       // Report all errors
       boardInstallationErrors.forEach(error => {
-        console.error(`Could not complete initial setup: ${error.message}`);
+        if (!error.message.includes('Cannot read properties of undefined')) {
+            this.messageService.error(`Could not complete initial setup: ${error.message}`);
+        }
       });
 
       // Set flag only if no critical errors occurred
