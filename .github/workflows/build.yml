@@ -403,7 +403,7 @@ jobs:
           # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
 
-          
+  
       - name: Sign internal app binaries (win-unpacked root)
         if: matrix.config.name == 'Windows'
         uses: azure/trusted-signing-action@v0
@@ -414,7 +414,21 @@ jobs:
           files-folder: electron-app/dist/win-unpacked
           files-folder-filter: exe,dll,node
           files-folder-recurse: true
-
+  
+      - name: Remove non-Windows native modules from Windows bundle
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $root = "electron-app\dist\win-unpacked"
+          $targets = @("linux", "darwin")
+          foreach ($t in $targets) {
+            Get-ChildItem $root -Recurse -Directory -Force -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -ieq $t } |
+              ForEach-Object {
+                Write-Host "Removing folder: $($_.FullName)"
+                Remove-Item -Recurse -Force $_.FullName
+              }
+          }
 
       - name: Sign internal app binaries (asar.unpacked)
         if: matrix.config.name == 'Windows'
