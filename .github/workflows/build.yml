@@ -383,9 +383,6 @@ jobs:
           yarn --cwd electron-app build
           yarn --cwd electron-app package
 
-        retry:  
-          max-attempts: 2  # Retry 2 times (total 3 attempts)  
-          when: failure()  # Only retry if the step fails (default behavior) 
 # DIAG
 #       - name: Diagnostic - find CH340 exe in electron-app/dist
 #         if: matrix.config.name == 'Windows'
