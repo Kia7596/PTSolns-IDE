@@ -384,12 +384,15 @@ jobs:
           npx node-gyp install
           yarn install
           
-          # FIX 1: Install reflect-metadata to prevent runtime crashes
+          # FIX 1: Install reflect-metadata (Required for Windows app to run)
           yarn --cwd electron-app add reflect-metadata
 
-          # FIX 2: Install SPECIFIC version of inversify (5.1.1) compatible with Theia
-          # We force v5.1.1 because v6+ causes the "reflect-metadata/lite" error
+          # FIX 2: Force Inversify 5.1.1 (Required by Theia/Arduino code)
           yarn --cwd arduino-ide-extension add inversify@5.1.1
+
+          # FIX 3: Downgrade TypeScript to 4.9.5 for the extension
+          # This fixes the "Unable to resolve signature" error you just saw
+          yarn --cwd arduino-ide-extension add typescript@4.9.5 --dev
 
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
