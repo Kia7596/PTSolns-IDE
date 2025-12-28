@@ -435,7 +435,8 @@ jobs:
 
 # -----------------------------------------------------------------------
       # 5. Sign the Internal Files (Windows Only)
-      #    FIX: Added timestamp-url to prevent timeouts when signing many files
+      #    FIX: recurse: false prevents signing thousands of files in node_modules,
+      #         which was causing the Azure timeout/crash.
       # -----------------------------------------------------------------------
       - name: Sign Internal Executables
         if: matrix.config.name == 'Windows'
@@ -446,7 +447,7 @@ jobs:
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: electron-app/dist/win-unpacked
           files-folder-filter: exe,dll
-          files-folder-recurse: true
+          files-folder-recurse: false
           timestamp-url: http://timestamp.digicert.com
 
       # -----------------------------------------------------------------------
