@@ -384,11 +384,12 @@ jobs:
           npx node-gyp install
           yarn install
           
-          # FIX 1: Install 'reflect-metadata' for the main app (fixes Windows runtime crash)
+          # FIX 1: Install reflect-metadata to prevent runtime crashes
           yarn --cwd electron-app add reflect-metadata
 
-          # FIX 2: Install 'inversify' for the extension (fixes Mac build error)
-          yarn --cwd arduino-ide-extension add inversify
+          # FIX 2: Install SPECIFIC version of inversify (5.1.1) compatible with Theia
+          # We force v5.1.1 because v6+ causes the "reflect-metadata/lite" error
+          yarn --cwd arduino-ide-extension add inversify@5.1.1
 
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
