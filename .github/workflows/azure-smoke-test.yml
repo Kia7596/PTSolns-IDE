@@ -2,7 +2,9 @@ name: Azure OIDC Smoke Test
 
 on:
   workflow_dispatch:
-
+  push:
+      branches:
+        - signing-lab
 permissions:
   id-token: write
   contents: read
