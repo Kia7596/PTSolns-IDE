@@ -391,6 +391,16 @@ jobs:
             yarn --cwd electron-app package
           fi
 
+      - name: Verify reflect-metadata exists in win-unpacked
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $p = "electron-app\dist\win-unpacked\resources\app\node_modules\reflect-metadata\package.json"
+          if (!(Test-Path $p)) {
+            Write-Error "reflect-metadata is missing from packaged app: $p"
+            exit 1
+          }
+          Write-Host "OK: reflect-metadata is packaged."
 
 
       # ADDED: Azure OIDC login (Windows only)
