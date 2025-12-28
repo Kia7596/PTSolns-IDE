@@ -367,7 +367,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           audience: api://AzureADTokenExchange
 
-      # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
       # 2. Build Source Code (ALL OS)
       # -----------------------------------------------------------------------
       - name: Build Source Code
@@ -376,7 +376,6 @@ jobs:
           AC_USERNAME: ${{ secrets.AC_USERNAME }}
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
           AC_TEAM_ID: ${{ secrets.AC_TEAM_ID }}
-          # We keep these vars so the app knows its version/nightly status
           IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
           CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
@@ -384,10 +383,13 @@ jobs:
         run: |
           npx node-gyp install
           yarn install
+          
+          # FIX: Force 'reflect-metadata' to be inside electron-app so the builder picks it up
+          yarn --cwd electron-app add reflect-metadata
+
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
-
       # -----------------------------------------------------------------------
       # 3. Packaging for MAC & LINUX (Old Method)
       #    We keep this exactly as it was to ensure no changes for non-Windows.
