@@ -355,9 +355,59 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           version: 3.x
 
-# -----------------------------------------------------------------------
-      # 1. Login to Azure (Windows Only) - Must happen first
-      # -----------------------------------------------------------------------
+      - name: Package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AC_USERNAME: ${{ secrets.AC_USERNAME }}
+          AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+          AC_TEAM_ID: ${{ secrets.AC_TEAM_ID }}
+          IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
+          IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
+          CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
+        working-directory: ${{ matrix.config.working-directory || './' }}
+        run: |
+          if [ $CAN_SIGN = false ] || [ $IS_WINDOWS_CONFIG = true ]; then
+            echo "Skipping the app signing: certificate not provided."
+          else
+            export CSC_LINK="${{ runner.temp }}/signing_certificate.${{ matrix.config.certificate-extension }}"
+            echo "${{ secrets[matrix.config.certificate-secret] }}" | base64 --decode > "$CSC_LINK"
+            export CSC_KEY_PASSWORD="${{ secrets[matrix.config.certificate-password-secret] }}"
+            export CSC_FOR_PULL_REQUEST=true
+          fi
+
+          npx node-gyp install
+          yarn install
+
+          yarn --cwd arduino-ide-extension build
+          yarn --cwd electron-app rebuild
+          yarn --cwd electron-app build
+          yarn --cwd electron-app package
+
+# DIAG
+#       - name: Diagnostic - find CH340 exe in electron-app/dist
+#         if: matrix.config.name == 'Windows'
+#         shell: pwsh
+#         run: |
+#           Write-Host "PWD: $PWD"
+#           Write-Host "=== Listing electron-app/dist (top level) ==="
+#           Get-ChildItem "electron-app/dist" -Force | Format-Table Name,Mode,LastWriteTime
+
+#           Write-Host "=== Searching for ch340.exe under electron-app/dist ==="
+#           $hits = Get-ChildItem "electron-app/dist" -Recurse -Filter "ch340.exe" -File -ErrorAction SilentlyContinue
+#           if (-not $hits -or $hits.Count -eq 0) {
+#             Write-Host "NO ch340.exe found under electron-app/dist"
+#             exit 0
+#           }
+
+#           Write-Host "FOUND ch340.exe at:"
+#           $hits | ForEach-Object { Write-Host " - $($_.FullName)" }
+
+#           Write-Host "=== (Optional) Searching for drivers/ch340-drivers folder ==="
+#           $dirs = Get-ChildItem "electron-app/dist" -Recurse -Directory -ErrorAction SilentlyContinue |
+#             Where-Object { $_.FullName -match "drivers\\ch340-drivers$" }
+#           $dirs | ForEach-Object { Write-Host " - DIR: $($_.FullName)" }
+
+      # ADDED: Azure OIDC login (Windows only)
       - name: Azure login (OIDC)
         if: matrix.config.name == 'Windows'
         uses: azure/login@v2
@@ -365,119 +415,32 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
 
-# -----------------------------------------------------------------------
-      # 2. Build Source Code (ALL OS)
-      # -----------------------------------------------------------------------
-      - name: Build Source Code
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AC_USERNAME: ${{ secrets.AC_USERNAME }}
-          AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-          AC_TEAM_ID: ${{ secrets.AC_TEAM_ID }}
-          IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
-          IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
-          CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
-        working-directory: ${{ matrix.config.working-directory || './' }}
-        run: |
-          npx node-gyp install
-          yarn install
-          
-          # FIX 1: Install reflect-metadata (Required for Windows app to run)
-          yarn --cwd electron-app add reflect-metadata
+      # - name: Sign CH340 driver installer (Azure Trusted Signing)
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: electron-app/dist/win-unpacked/resources/drivers/ch340-drivers
+      #     files-folder-filter: exe
 
-          # FIX 2: Force Inversify 5.1.1 (Required by Theia/Arduino code)
-          yarn --cwd arduino-ide-extension add inversify@5.1.1
 
-          # FIX 3: Downgrade TypeScript to 4.9.5 for the extension
-          # This fixes the "Unable to resolve signature" error you just saw
-          yarn --cwd arduino-ide-extension add typescript@4.9.5 --dev
-
-          yarn --cwd arduino-ide-extension build
-          yarn --cwd electron-app rebuild
-          yarn --cwd electron-app build
-      # -----------------------------------------------------------------------
-      # 3. Packaging for MAC & LINUX (Old Method)
-      #    We keep this exactly as it was to ensure no changes for non-Windows.
-      # -----------------------------------------------------------------------
-      - name: Package (Mac & Linux)
-        if: matrix.config.name != 'Windows'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AC_USERNAME: ${{ secrets.AC_USERNAME }}
-          AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-          AC_TEAM_ID: ${{ secrets.AC_TEAM_ID }}
-          IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
-          IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
-          CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
-        working-directory: ${{ matrix.config.working-directory || './' }}
-        run: |
-          if [ "$CAN_SIGN" = "true" ]; then
-            export CSC_LINK="${{ runner.temp }}/signing_certificate.${{ matrix.config.certificate-extension }}"
-            echo "${{ secrets[matrix.config.certificate-secret] }}" | base64 --decode > "$CSC_LINK"
-            export CSC_KEY_PASSWORD="${{ secrets[matrix.config.certificate-password-secret] }}"
-            export CSC_FOR_PULL_REQUEST=true
-          fi
-          yarn --cwd electron-app package
-# -----------------------------------------------------------------------
-      # 4. Create "Unpacked" Files (Windows Only)
-      #    FIX: Used single quotes '...' so Bash doesn't eat the variables
-      # -----------------------------------------------------------------------
-      - name: Create Unpacked Files
+      # ADDED: Sign Windows artifacts (Windows only)
+      - name: Sign Windows installers (Azure Trusted Signing)
         if: matrix.config.name == 'Windows'
-        working-directory: electron-app
-        env:
-          IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
-          IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
-        run: |
-          npx electron-builder --win --dir --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}'
-
-# -----------------------------------------------------------------------
-      # 5. Sign the Internal Files (Windows Only)
-      #    FIX: recurse: false prevents signing thousands of files in node_modules,
-      #         which was causing the Azure timeout/crash.
-      # -----------------------------------------------------------------------
-      - name: Sign Internal Executables
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0.5.1
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: electron-app/dist/win-unpacked
-          files-folder-filter: exe,dll
-          files-folder-recurse: false
-          timestamp-url: http://timestamp.digicert.com
-
-      # -----------------------------------------------------------------------
-      # 6. Create Final Installer (Windows Only)
-      #    (Keep this step exactly as it was in your last file)
-      # -----------------------------------------------------------------------
-      - name: Create Final Installer
-        if: matrix.config.name == 'Windows'
-        working-directory: electron-app
-        env:
-          IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
-          IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
-        run: |
-          # FIX: Ensure we use single quotes for the artifact name
-          npx electron-builder --win --prepackaged dist/win-unpacked --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}' -c.directories.output=dist/build-artifacts
-
-      # -----------------------------------------------------------------------
-      # 7. Sign the Final Installer (Windows Only)
-      #    FIX: Added timestamp-url here too just to be safe
-      # -----------------------------------------------------------------------
-      - name: Sign Final Installer
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0.5.1
+        uses: azure/trusted-signing-action@v0
         with:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
+          # NOTE: action expects a filter list like "exe,msi"
           files-folder-filter: exe,msi
-          timestamp-url: http://timestamp.digicert.com
+
 
 
       - name: Stage channel file for merge
