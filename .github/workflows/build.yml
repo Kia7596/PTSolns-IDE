@@ -413,6 +413,7 @@ jobs:
           yarn --cwd electron-app package
 # -----------------------------------------------------------------------
       # 4. Create "Unpacked" Files (Windows Only)
+      #    FIX: Used single quotes '...' so Bash doesn't eat the variables
       # -----------------------------------------------------------------------
       - name: Create Unpacked Files
         if: matrix.config.name == 'Windows'
@@ -421,7 +422,7 @@ jobs:
           IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
         run: |
-          npx electron-builder --win --dir --config.artifactName="ptsolns-ide_${version}_Windows_64bit.${ext}"
+          npx electron-builder --win --dir --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}'
 
       # -----------------------------------------------------------------------
       # 5. Sign the Internal Files (Windows Only)
@@ -439,7 +440,7 @@ jobs:
 
       # -----------------------------------------------------------------------
       # 6. Create Final Installer (Windows Only)
-      #    FIX: Added output dir config so files land in 'build-artifacts'
+      #    FIX: Used single quotes '...' here too
       # -----------------------------------------------------------------------
       - name: Create Final Installer
         if: matrix.config.name == 'Windows'
@@ -448,7 +449,7 @@ jobs:
           IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
         run: |
-          npx electron-builder --win --prepackaged dist/win-unpacked --config.artifactName="ptsolns-ide_${version}_Windows_64bit.${ext}" -c.directories.output=dist/build-artifacts
+          npx electron-builder --win --prepackaged dist/win-unpacked --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}' -c.directories.output=dist/build-artifacts
 
       # -----------------------------------------------------------------------
       # 7. Sign the Final Installer (Windows Only)
