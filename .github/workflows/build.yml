@@ -433,8 +433,9 @@ jobs:
         run: |
           npx electron-builder --win --dir --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}'
 
-      # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
       # 5. Sign the Internal Files (Windows Only)
+      #    FIX: Added timestamp-url to prevent timeouts when signing many files
       # -----------------------------------------------------------------------
       - name: Sign Internal Executables
         if: matrix.config.name == 'Windows'
@@ -446,10 +447,11 @@ jobs:
           files-folder: electron-app/dist/win-unpacked
           files-folder-filter: exe,dll
           files-folder-recurse: true
+          timestamp-url: http://timestamp.digicert.com
 
       # -----------------------------------------------------------------------
       # 6. Create Final Installer (Windows Only)
-      #    FIX: Used single quotes '...' here too
+      #    (Keep this step exactly as it was in your last file)
       # -----------------------------------------------------------------------
       - name: Create Final Installer
         if: matrix.config.name == 'Windows'
@@ -458,10 +460,12 @@ jobs:
           IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
         run: |
+          # FIX: Ensure we use single quotes for the artifact name
           npx electron-builder --win --prepackaged dist/win-unpacked --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}' -c.directories.output=dist/build-artifacts
 
       # -----------------------------------------------------------------------
       # 7. Sign the Final Installer (Windows Only)
+      #    FIX: Added timestamp-url here too just to be safe
       # -----------------------------------------------------------------------
       - name: Sign Final Installer
         if: matrix.config.name == 'Windows'
@@ -472,6 +476,7 @@ jobs:
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
           files-folder-filter: exe,msi
+          timestamp-url: http://timestamp.digicert.com
 
 
       - name: Stage channel file for merge
