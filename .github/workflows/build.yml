@@ -384,8 +384,11 @@ jobs:
           npx node-gyp install
           yarn install
           
-          # FIX: Force 'reflect-metadata' to be inside electron-app so the builder picks it up
+          # FIX 1: Install 'reflect-metadata' for the main app (fixes Windows runtime crash)
           yarn --cwd electron-app add reflect-metadata
+
+          # FIX 2: Install 'inversify' for the extension (fixes Mac build error)
+          yarn --cwd arduino-ide-extension add inversify
 
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
