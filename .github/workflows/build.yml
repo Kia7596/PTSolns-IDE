@@ -411,24 +411,20 @@ jobs:
             export CSC_FOR_PULL_REQUEST=true
           fi
           yarn --cwd electron-app package
-
-      # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
       # 4. Create "Unpacked" Files (Windows Only)
-      #    We force the artifact name to match your specific pattern here.
       # -----------------------------------------------------------------------
       - name: Create Unpacked Files
         if: matrix.config.name == 'Windows'
-        working-directory: ${{ matrix.config.working-directory || './' }}
+        working-directory: electron-app
         env:
           IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
         run: |
-          # --dir unpacks the files. We set the name config just to be safe/consistent.
           npx electron-builder --win --dir --config.artifactName="ptsolns-ide_${version}_Windows_64bit.${ext}"
 
       # -----------------------------------------------------------------------
       # 5. Sign the Internal Files (Windows Only)
-      #    This solves the "Unknown Publisher" error for the running app.
       # -----------------------------------------------------------------------
       - name: Sign Internal Executables
         if: matrix.config.name == 'Windows'
@@ -443,22 +439,19 @@ jobs:
 
       # -----------------------------------------------------------------------
       # 6. Create Final Installer (Windows Only)
-      #    We wrap the signed files and FORCE the filename to your pattern.
+      #    FIX: Added output dir config so files land in 'build-artifacts'
       # -----------------------------------------------------------------------
       - name: Create Final Installer
         if: matrix.config.name == 'Windows'
-        working-directory: ${{ matrix.config.working-directory || './' }}
+        working-directory: electron-app
         env:
           IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
         run: |
-          # --prepackaged uses the signed folder
-          # --config.artifactName ensures the file is named "ptsolns-ide_0.0.42_Windows_64bit.exe"
-          npx electron-builder --win --prepackaged electron-app/dist/win-unpacked --config.artifactName="ptsolns-ide_${version}_Windows_64bit.${ext}"
+          npx electron-builder --win --prepackaged dist/win-unpacked --config.artifactName="ptsolns-ide_${version}_Windows_64bit.${ext}" -c.directories.output=dist/build-artifacts
 
       # -----------------------------------------------------------------------
       # 7. Sign the Final Installer (Windows Only)
-      #    Signs the Setup.exe and MSI.
       # -----------------------------------------------------------------------
       - name: Sign Final Installer
         if: matrix.config.name == 'Windows'
