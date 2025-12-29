@@ -20,7 +20,9 @@ module.exports = async function (context) {
   }
 
   if (electronPlatformName === "darwin") {
-    console.log("Running macOS notarization");
-    require("./notarize")(context);
-  }
-};
+  console.log("Running macOS notarization");
+  const notarizeMod = require("./notarize");
+  const notarizeFn = notarizeMod.default || notarizeMod;
+  await notarizeFn(context);
+}
+
