@@ -531,6 +531,13 @@ jobs:
       #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
       #     files-folder: electron-app/dist/win-unpacked/resources/drivers/ch340-drivers
       #     files-folder-filter: exe
+      - name: List dist outputs (Windows)
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          Get-ChildItem "electron-app/dist" -Recurse -File |
+            Select-Object FullName, Length |
+            Sort-Object FullName
 
 
       # ADDED: Sign Windows artifacts (Windows only)
