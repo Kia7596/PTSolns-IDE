@@ -431,6 +431,13 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
+          
+      - name: List backend executables (sanity)
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          Get-ChildItem "electron-app/dist/win-unpacked/resources/app/lib/backend" -Recurse -Include *.exe,*.dll -File |
+            Select-Object -First 50 FullName
 
       - name: Sign Windows payload (win-unpacked EXE/DLL)
         if: matrix.config.name == 'Windows'
@@ -461,6 +468,27 @@ jobs:
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: electron-app/dist/win-unpacked/resources/app/lib/backend
           files-folder-filter: exe,dll
+
+      - name: Sign payload (backend native)
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: electron-app/dist/win-unpacked/resources/app/lib/backend/native
+          files-folder-filter: exe,dll
+      
+      - name: Sign payload (backend resources)
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: electron-app/dist/win-unpacked/resources/app/lib/backend/resources
+          files-folder-filter: exe,dll
+
       
       - name: Sign payload (winpty Release)
         if: matrix.config.name == 'Windows'
