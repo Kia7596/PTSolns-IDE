@@ -26,6 +26,7 @@ on:
   push:
     branches:
       - main
+      - signing-lab
       - '[0-9]+.[0-9]+.x'
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
@@ -366,8 +367,10 @@ jobs:
           CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
         working-directory: ${{ matrix.config.working-directory || './' }}
         run: |
-          if [ $CAN_SIGN = false ] || [ $IS_WINDOWS_CONFIG = true ]; then
-            echo "Skipping the app signing: certificate not provided."
+          if [ $CAN_SIGN = false ]; then
+            echo "Skipping app signing: certificate not provided."
+          elif [ "$IS_WINDOWS_CONFIG" = "true" ]; then
+            echo "Skipping app signing on Windows (handled by Azure Trusted Signing later)."
           else
             export CSC_LINK="${{ runner.temp }}/signing_certificate.${{ matrix.config.certificate-extension }}"
             echo "${{ secrets[matrix.config.certificate-secret] }}" | base64 --decode > "$CSC_LINK"
@@ -375,38 +378,21 @@ jobs:
             export CSC_FOR_PULL_REQUEST=true
           fi
 
+
           npx node-gyp install
           yarn install
 
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
-          yarn --cwd electron-app package
+          if [ "$IS_WINDOWS_CONFIG" = "true" ]; then
+            echo "Skipping Windows packaging here; Windows packaging handled later."
+          else
+            yarn --cwd electron-app package
+          fi
+
 
          
-# DIAG
-#       - name: Diagnostic - find CH340 exe in electron-app/dist
-#         if: matrix.config.name == 'Windows'
-#         shell: pwsh
-#         run: |
-#           Write-Host "PWD: $PWD"
-#           Write-Host "=== Listing electron-app/dist (top level) ==="
-#           Get-ChildItem "electron-app/dist" -Force | Format-Table Name,Mode,LastWriteTime
-
-#           Write-Host "=== Searching for ch340.exe under electron-app/dist ==="
-#           $hits = Get-ChildItem "electron-app/dist" -Recurse -Filter "ch340.exe" -File -ErrorAction SilentlyContinue
-#           if (-not $hits -or $hits.Count -eq 0) {
-#             Write-Host "NO ch340.exe found under electron-app/dist"
-#             exit 0
-#           }
-
-#           Write-Host "FOUND ch340.exe at:"
-#           $hits | ForEach-Object { Write-Host " - $($_.FullName)" }
-
-#           Write-Host "=== (Optional) Searching for drivers/ch340-drivers folder ==="
-#           $dirs = Get-ChildItem "electron-app/dist" -Recurse -Directory -ErrorAction SilentlyContinue |
-#             Where-Object { $_.FullName -match "drivers\\ch340-drivers$" }
-#           $dirs | ForEach-Object { Write-Host " - DIR: $($_.FullName)" }
 
       # ADDED: Azure OIDC login (Windows only)
       - name: Azure login (OIDC)
@@ -419,15 +405,62 @@ jobs:
           # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
 
-      # - name: Sign CH340 driver installer (Azure Trusted Signing)
-      #   if: matrix.config.name == 'Windows'
-      #   uses: azure/trusted-signing-action@v0
-      #   with:
-      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-      #     files-folder: electron-app/dist/win-unpacked/resources/drivers/ch340-drivers
-      #     files-folder-filter: exe
+      - name: Build Windows unpacked (dir)
+        if: matrix.config.name == 'Windows'
+        shell: bash
+        run: |
+          yarn --cwd electron-app electron-builder --win --x64 --dir
+
+      - name: Find Windows unpacked folder
+        id: find_unpacked
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $base = Join-Path $PWD "electron-app/dist"
+          $dir = Get-ChildItem $base -Directory | Where-Object { $_.Name -like "*unpacked*" } | Select-Object -First 1
+          if (-not $dir) { throw "Could not find *unpacked* directory under electron-app/dist" }
+          "unpacked=$($dir.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Unpacked dir: $($dir.FullName)"
+
+      - name: Guard reflect-metadata exists in unpacked app
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $dir = "${{ steps.find_unpacked.outputs.unpacked }}"
+          $p = Join-Path $dir "resources\app\node_modules\reflect-metadata\package.json"
+          if (!(Test-Path $p)) { throw "reflect-metadata missing in unpacked app" }
+          Write-Host "OK: reflect-metadata exists"
+
+
+      - name: Sign unpacked app binaries (Azure Trusted Signing)
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ steps.find_unpacked.outputs.unpacked }}
+          files-folder-filter: exe,dll,node
+
+      - name: Build Windows installer from signed unpacked
+        if: matrix.config.name == 'Windows'
+        shell: bash
+        run: |
+          yarn --cwd electron-app electron-builder --win --x64 --prepackaged "${{ steps.find_unpacked.outputs.unpacked }}"
+          
+      - name: Diagnostic list Windows dist outputs
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "=== electron-app/dist ==="
+          Get-ChildItem "electron-app/dist" -Force | Format-Table Name,Length,LastWriteTime
+          Write-Host "=== electron-app/dist/build-artifacts (if exists) ==="
+          if (Test-Path "electron-app/dist/build-artifacts") {
+            Get-ChildItem "electron-app/dist/build-artifacts" -Force | Format-Table Name,Length,LastWriteTime
+          } else {
+            Write-Host "No build-artifacts folder yet."
+          }
+
 
 
       # ADDED: Sign Windows artifacts (Windows only)
