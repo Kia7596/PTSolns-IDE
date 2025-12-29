@@ -478,6 +478,18 @@ jobs:
           files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend\native
           files-folder-filter: exe,dll
 
+      # NEW: Sign backend root helpers (windows-trash.exe lives here)
+      - name: Sign Windows backend root helpers - Azure Trusted Signing
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend
+          files-folder-filter: exe,dll
+
+
 
       # NEW: Sign backend tools (clangd, language-server, cli, rg, windows-trash, etc.)
       # - name: Sign Windows app binaries (backend tools) - Azure Trusted Signing
