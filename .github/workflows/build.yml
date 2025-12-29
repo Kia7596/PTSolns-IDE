@@ -384,11 +384,6 @@ jobs:
           if [ "$IS_WINDOWS_CONFIG" = "true" ]; then
             # Phase A: create unpacked payload only
             (cd electron-app && npx electron-builder --win --x64 --dir)
-          
-            # We'll sign win-unpacked in the next step (Azure Trusted Signing)
-          
-            # Phase C: build final installer/zip from the signed payload
-            (cd electron-app && npx electron-builder --win --x64 --prepackaged dist/win-unpacked)
 
           else
             # Non-windows unchanged
@@ -519,6 +514,12 @@ jobs:
           if ($bad.Count -gt 0) { exit 1 }
 
       
+      - name: Package Windows artifacts from signed payload (prepackaged)
+        if: matrix.config.name == 'Windows'
+        shell: bash
+        run: |
+          cd electron-app
+          npx electron-builder --win --x64 --prepackaged dist/win-unpacked
 
 
 
