@@ -539,6 +539,14 @@ jobs:
             Select-Object FullName, Length |
             Sort-Object FullName
 
+      - name: Collect installers
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "electron-app/dist/installers" | Out-Null
+          Copy-Item "electron-app/dist/*Setup*.exe" "electron-app/dist/installers/" -Force
+          Copy-Item "electron-app/dist/*.msi" "electron-app/dist/installers/" -Force
+          Get-ChildItem "electron-app/dist/installers" | Select-Object FullName
 
       # ADDED: Sign Windows artifacts (Windows only)
       - name: Sign Windows installers (Azure Trusted Signing)
@@ -548,7 +556,7 @@ jobs:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: electron-app/dist/build-artifacts
+          files-folder: electron-app/dist/installers
           files-folder-filter: exe,msi
 
 
