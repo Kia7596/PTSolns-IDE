@@ -6,7 +6,7 @@ name: PTSolns IDE
 on:
   push:
     branches:
-      - signing-lab
+      - main
       - '[0-9]+.[0-9]+.x'
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
@@ -42,7 +42,6 @@ env:
   CHANGELOG_ARTIFACTS: changelog
   STAGED_CHANNEL_FILE_ARTIFACT_PREFIX: staged-channel-file-
 
-  # (Keeping your exact configuration data)
   BASE_BUILD_DATA: |
     - config:
         name: Windows
@@ -179,7 +178,7 @@ jobs:
     env:
       BUILD_ARTIFACTS_PATH: electron-app/dist/build-artifacts
       IS_WINDOWS_CONFIG: ${{ matrix.config.name == 'Windows' }}
-      # Legacy Cert Variables (Keep these for fallback!)
+      # Legacy Cert Variables (Required for fallback logic)
       INSTALLER_CERT_WINDOWS_CER: "/tmp/cert.cer"
       WIN_CERT_PASSWORD: ${{ secrets[matrix.config.certificate-password-secret] }}
       WIN_CERT_CONTAINER_NAME: ${{ secrets[matrix.config.certificate-container] }}
@@ -293,11 +292,11 @@ jobs:
           npx node-gyp install
           yarn install
 
-          # --- Dependency Fixes (Mac/Linux) ---
+          # --- Dependency Fixes (Crucial for Mac/Linux) ---
           yarn --cwd electron-app add reflect-metadata
           yarn --cwd arduino-ide-extension add inversify@5.1.1
           yarn --cwd arduino-ide-extension add typescript@4.9.5 --dev
-          # ------------------------------------
+          # ------------------------------------------------
 
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
