@@ -25,7 +25,7 @@ on:
 
   push:
     branches:
-      - main
+      - signing-hook-test
       - '[0-9]+.[0-9]+.x'
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
@@ -418,16 +418,75 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
+          
 
-      # - name: Sign CH340 driver installer (Azure Trusted Signing)
-      #   if: matrix.config.name == 'Windows'
-      #   uses: azure/trusted-signing-action@v0
-      #   with:
-      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-      #     files-folder: electron-app/dist/win-unpacked/resources/drivers/ch340-drivers
-      #     files-folder-filter: exe
+      # NEW: Locate the unpacked Windows app output produced by electron-builder
+      - name: Windows - locate win-unpacked output
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $candidates = @(
+            "electron-app\dist\win-unpacked",
+            "electron-app\dist\win-ia32-unpacked",
+            "electron-app\dist\win-x64-unpacked",
+            "electron-app\dist\win-arm64-unpacked"
+          )
+
+          $found = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $found) {
+            Write-Host "No win-unpacked folder found. Listing electron-app\dist for debugging..."
+            if (Test-Path "electron-app\dist") {
+              Get-ChildItem "electron-app\dist" -Force | Format-Table Name,Mode,LastWriteTime
+            }
+            throw "win-unpacked output not found. electron-builder may be outputting elsewhere."
+          }
+
+          Write-Host "Found unpacked app output at: $found"
+          echo "WIN_UNPACKED_DIR=$found" >> $env:GITHUB_ENV
+
+      # NEW: Sign the app payload binaries (the stuff that gets installed)
+      - name: Sign Windows app binaries (win-unpacked) - Azure Trusted Signing
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ env.WIN_UNPACKED_DIR }}
+          # Sign only PE binaries. Start narrow (exe,dll). Expand later if needed.
+          files-folder-filter: exe,dll
+
+      # NEW: Verify signatures in win-unpacked (fail the build if anything is left unsigned)
+      - name: Verify signatures in win-unpacked (must be Valid)
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $root = "${{ env.WIN_UNPACKED_DIR }}"
+          if (-not (Test-Path $root)) { throw "WIN_UNPACKED_DIR does not exist: $root" }
+
+          $files = Get-ChildItem -Path $root -Recurse -Include *.exe,*.dll -File -ErrorAction SilentlyContinue
+          Write-Host "Found $($files.Count) EXE/DLL files under $root"
+
+          $bad = @()
+          foreach ($f in $files) {
+            $sig = Get-AuthenticodeSignature $f.FullName
+            if ($sig.Status -ne 'Valid') {
+              $bad += [PSCustomObject]@{
+                Path   = $f.FullName
+                Status = $sig.Status
+                Signer = ($sig.SignerCertificate.Subject)
+              }
+            }
+          }
+
+          if ($bad.Count -gt 0) {
+            Write-Host "---- NOT VALID SIGNATURES (FAIL) ----"
+            $bad | Sort-Object Status, Path | Format-Table -AutoSize
+            throw "Unsigned/invalid binaries remain in win-unpacked: $($bad.Count)"
+          }
+
+          Write-Host "All EXE/DLL signatures are Valid in win-unpacked ✅"
+
 
 
       # ADDED: Sign Windows artifacts (Windows only)
