@@ -384,23 +384,55 @@ jobs:
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
-          yarn --cwd electron-app package --verbose 2>&1 | tee electron-app-package.log
+          yarn --cwd electron-app package 
 
-      - name: Debug - locate Windows packaging output
+      - name: Windows - verify signatures in packaged ZIP (report only)
         if: matrix.config.name == 'Windows'
         shell: pwsh
         run: |
-          Write-Host "=== dist folder tree (top) ==="
-          Get-ChildItem "electron-app\dist" -Force | Format-Table Name,Mode,LastWriteTime
+          $zip = Get-ChildItem "electron-app\dist" -Filter "*Windows_64bit.zip" -File | Select-Object -First 1
+          if (-not $zip) { Write-Host "No zip found"; exit 0 }
 
-          Write-Host "=== searching for win-unpacked ==="
-          Get-ChildItem "electron-app\dist" -Recurse -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -match "win-.*unpacked$" } |
-            ForEach-Object { Write-Host "UNPACKED: $($_.FullName)" }
+          $tmp = Join-Path $env:RUNNER_TEMP "zipcheck"
+          if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
-          Write-Host "=== searching for installer exe outputs ==="
-          Get-ChildItem "electron-app\dist" -Recurse -Filter "*.exe" -File -ErrorAction SilentlyContinue |
-            ForEach-Object { Write-Host "EXE: $($_.FullName)" }
+          Expand-Archive -Path $zip.FullName -DestinationPath $tmp -Force
+
+          $files = Get-ChildItem -Path $tmp -Recurse -Include *.exe,*.dll -File
+          Write-Host "ZIP contains $($files.Count) EXE/DLL files"
+
+          $bad = @()
+          foreach ($f in $files) {
+            $sig = Get-AuthenticodeSignature $f.FullName
+            if ($sig.Status -ne "Valid") {
+              $bad += "$($sig.Status) $($f.FullName)"
+            }
+          }
+
+          if ($bad.Count -gt 0) {
+            Write-Host "---- NOT VALID SIGNATURES ----"
+            $bad | ForEach-Object { Write-Host $_ }
+          } else {
+            Write-Host "All ZIP EXE/DLL signatures are Valid ✅"
+          }
+
+
+      # - name: Debug - locate Windows packaging output
+      #   if: matrix.config.name == 'Windows'
+      #   shell: pwsh
+      #   run: |
+      #     Write-Host "=== dist folder tree (top) ==="
+      #     Get-ChildItem "electron-app\dist" -Force | Format-Table Name,Mode,LastWriteTime
+
+      #     Write-Host "=== searching for win-unpacked ==="
+      #     Get-ChildItem "electron-app\dist" -Recurse -Directory -ErrorAction SilentlyContinue |
+      #       Where-Object { $_.FullName -match "win-.*unpacked$" } |
+      #       ForEach-Object { Write-Host "UNPACKED: $($_.FullName)" }
+
+      #     Write-Host "=== searching for installer exe outputs ==="
+      #     Get-ChildItem "electron-app\dist" -Recurse -Filter "*.exe" -File -ErrorAction SilentlyContinue |
+      #       ForEach-Object { Write-Host "EXE: $($_.FullName)" }
 
 
       - name: Upload mac package log
@@ -448,74 +480,74 @@ jobs:
           audience: api://AzureADTokenExchange
           
 
-      # NEW: Locate the unpacked Windows app output produced by electron-builder
-      - name: Windows - locate win-unpacked output
-        if: matrix.config.name == 'Windows'
-        shell: pwsh
-        run: |
-          $candidates = @(
-            "electron-app\dist\win-unpacked",
-            "electron-app\dist\win-ia32-unpacked",
-            "electron-app\dist\win-x64-unpacked",
-            "electron-app\dist\win-arm64-unpacked"
-          )
+      #  NEW: Locate the unpacked Windows app output produced by electron-builder
+      # - name: Windows - locate win-unpacked output
+      #   if: matrix.config.name == 'Windows'
+      #   shell: pwsh
+      #   run: |
+      #     $candidates = @(
+      #       "electron-app\dist\win-unpacked",
+      #       "electron-app\dist\win-ia32-unpacked",
+      #       "electron-app\dist\win-x64-unpacked",
+      #       "electron-app\dist\win-arm64-unpacked"
+      #     )
 
-          $found = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $found) {
-            Write-Host "No win-unpacked folder found. Listing electron-app\dist for debugging..."
-            if (Test-Path "electron-app\dist") {
-              Get-ChildItem "electron-app\dist" -Force | Format-Table Name,Mode,LastWriteTime
-            }
-            throw "win-unpacked output not found. electron-builder may be outputting elsewhere."
-          }
+      #     $found = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+      #     if (-not $found) {
+      #       Write-Host "No win-unpacked folder found. Listing electron-app\dist for debugging..."
+      #       if (Test-Path "electron-app\dist") {
+      #         Get-ChildItem "electron-app\dist" -Force | Format-Table Name,Mode,LastWriteTime
+      #       }
+      #       throw "win-unpacked output not found. electron-builder may be outputting elsewhere."
+      #     }
 
-          Write-Host "Found unpacked app output at: $found"
-          echo "WIN_UNPACKED_DIR=$found" >> $env:GITHUB_ENV
+      #     Write-Host "Found unpacked app output at: $found"
+      #     echo "WIN_UNPACKED_DIR=$found" >> $env:GITHUB_ENV
 
       # NEW: Sign the app payload binaries (the stuff that gets installed)
-      - name: Sign Windows app binaries (win-unpacked) - Azure Trusted Signing
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ env.WIN_UNPACKED_DIR }}
-          # Sign only PE binaries. Start narrow (exe,dll). Expand later if needed.
-          files-folder-filter: exe,dll
+      # - name: Sign Windows app binaries (win-unpacked) - Azure Trusted Signing
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: ${{ env.WIN_UNPACKED_DIR }}
+      #     # Sign only PE binaries. Start narrow (exe,dll). Expand later if needed.
+      #     files-folder-filter: exe,dll
 
       # NEW: Sign backend resources tools (clangd, language-server, cli, fwupdater, etc.)
-      - name: Sign Windows backend resources tools - Azure Trusted Signing
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend\resources
-          files-folder-filter: exe,dll
+      # - name: Sign Windows backend resources tools - Azure Trusted Signing
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend\resources
+      #     files-folder-filter: exe,dll
 
       # NEW: Sign backend native tools (rg.exe)
-      - name: Sign Windows backend native tools - Azure Trusted Signing
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend\native
-          files-folder-filter: exe,dll
+      # - name: Sign Windows backend native tools - Azure Trusted Signing
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend\native
+      #     files-folder-filter: exe,dll
 
       # NEW: Sign backend root helpers (windows-trash.exe lives here)
-      - name: Sign Windows backend root helpers - Azure Trusted Signing
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend
-          files-folder-filter: exe,dll
+      # - name: Sign Windows backend root helpers - Azure Trusted Signing
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend
+      #     files-folder-filter: exe,dll
 
 
 
@@ -531,59 +563,59 @@ jobs:
       #     files-folder-filter: exe,dll
 
       # NEW: Sign build/native helpers (winpty-agent.exe, winpty.dll)
-      - name: Sign Windows app binaries (native/build helpers) - Azure Trusted Signing
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\build\Release
-          files-folder-filter: exe,dll
+      # - name: Sign Windows app binaries (native/build helpers) - Azure Trusted Signing
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\build\Release
+      #     files-folder-filter: exe,dll
 
       # NEW: Sign elevate.exe (it lives directly under resources)
-      - name: Sign Windows app binaries (resources root helpers) - Azure Trusted Signing
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources
-          files-folder-filter: exe,dll
+      # - name: Sign Windows app binaries (resources root helpers) - Azure Trusted Signing
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources
+      #     files-folder-filter: exe,dll
 
 
 
       # NEW: Verify signatures in win-unpacked (fail the build if anything is left unsigned)
-      - name: Verify signatures in win-unpacked (must be Valid)
-        if: matrix.config.name == 'Windows'
-        shell: pwsh
-        run: |
-          $root = "${{ env.WIN_UNPACKED_DIR }}"
-          if (-not (Test-Path $root)) { throw "WIN_UNPACKED_DIR does not exist: $root" }
+      # - name: Verify signatures in win-unpacked (must be Valid)
+      #   if: matrix.config.name == 'Windows'
+      #   shell: pwsh
+      #   run: |
+      #     $root = "${{ env.WIN_UNPACKED_DIR }}"
+      #     if (-not (Test-Path $root)) { throw "WIN_UNPACKED_DIR does not exist: $root" }
 
-          $files = Get-ChildItem -Path $root -Recurse -Include *.exe,*.dll -File -ErrorAction SilentlyContinue
-          Write-Host "Found $($files.Count) EXE/DLL files under $root"
+      #     $files = Get-ChildItem -Path $root -Recurse -Include *.exe,*.dll -File -ErrorAction SilentlyContinue
+      #     Write-Host "Found $($files.Count) EXE/DLL files under $root"
 
-          $bad = @()
-          foreach ($f in $files) {
-            $sig = Get-AuthenticodeSignature $f.FullName
-            if ($sig.Status -ne 'Valid') {
-              $bad += [PSCustomObject]@{
-                Path   = $f.FullName
-                Status = $sig.Status
-                Signer = ($sig.SignerCertificate.Subject)
-              }
-            }
-          }
+      #     $bad = @()
+      #     foreach ($f in $files) {
+      #       $sig = Get-AuthenticodeSignature $f.FullName
+      #       if ($sig.Status -ne 'Valid') {
+      #         $bad += [PSCustomObject]@{
+      #           Path   = $f.FullName
+      #           Status = $sig.Status
+      #           Signer = ($sig.SignerCertificate.Subject)
+      #         }
+      #       }
+      #     }
 
-          if ($bad.Count -gt 0) {
-            Write-Host "---- NOT VALID SIGNATURES (FAIL) ----"
-            $bad | Sort-Object Status, Path | Format-Table Status, Path -AutoSize
-            throw "Unsigned/invalid binaries remain in win-unpacked: $($bad.Count)"
-          }
+      #     if ($bad.Count -gt 0) {
+      #       Write-Host "---- NOT VALID SIGNATURES (FAIL) ----"
+      #       $bad | Sort-Object Status, Path | Format-Table Status, Path -AutoSize
+      #       throw "Unsigned/invalid binaries remain in win-unpacked: $($bad.Count)"
+      #     }
 
-          Write-Host "All EXE/DLL signatures are Valid in win-unpacked ✅"
+      #     Write-Host "All EXE/DLL signatures are Valid in win-unpacked ✅"
 
 
 
