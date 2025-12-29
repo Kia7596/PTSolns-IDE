@@ -2,76 +2,52 @@ const { execSync } = require('child_process');
 const path = require('path');
 
 exports.default = async function (configuration) {
-  // 1. Prelim Checks: Windows only, and check if signing is enabled globally
+  // 1. Prelim Checks
   if (process.platform !== 'win32') {
     console.log('[CustomSign] Skipping: Not on Windows.');
     return;
   }
 
-  if (process.env.CAN_SIGN !== 'true') {
-    console.log('[CustomSign] Skipping: CAN_SIGN is not true.');
-    return;
-  }
-
-  const filePath = configuration.path;
-  console.log(`[CustomSign] Processing target: ${path.basename(filePath)}`);
-
-  // ---------------------------------------------------------
-  // STRATEGY 1: Azure Trusted Signing (Priority)
-  // ---------------------------------------------------------
+  // 2. STRATEGY 1: Azure Trusted Signing (Priority)
   // We check if the workflow set up the Azure variables.
   if (process.env.AZURE_SIGNING_METADATA_PATH && process.env.AZURE_DLIB_PATH) {
     console.log('[CustomSign] Azure Trusted Signing configuration detected.');
-    
+    const filePath = configuration.path;
     const dlibPath = process.env.AZURE_DLIB_PATH;
     const metadataPath = process.env.AZURE_SIGNING_METADATA_PATH;
 
-    // Construct the signtool command for Azure
-    // Note: We use 'signtool' directly here, assuming it's in the path or setup by the workflow
+    // Use signtool with Azure Dlib
     const cmd = `signtool sign /v /debug /fd sha256 /tr http://timestamp.digicert.com /td sha256 /dlib "${dlibPath}" /dmdf "${metadataPath}" "${filePath}"`;
 
     try {
       execSync(cmd, { stdio: 'inherit' });
       console.log(`[CustomSign] Successfully signed with Azure: ${path.basename(filePath)}`);
-      return; // Success! We are done.
+      return; // Done!
     } catch (error) {
-      console.error(`[CustomSign] Azure signing failed. Error: ${error.message}`);
+      console.error(`[CustomSign] Azure signing failed: ${error.message}`);
       console.log('[CustomSign] Attempting fallback to legacy signing...');
-      // We do NOT return here; we let it fall through to Strategy 2
     }
   }
 
-  // ---------------------------------------------------------
-  // STRATEGY 2: Legacy eToken / Certificate Signing (Fallback)
-  // ---------------------------------------------------------
-  // This is your original logic.
-  
+  // 3. STRATEGY 2: Legacy eToken (Fallback)
+  // This is your original code
+  if (process.env.CAN_SIGN !== 'true') return;
+
   const SIGNTOOL_PATH = process.env.SIGNTOOL_PATH || 'signtool';
   const INSTALLER_CERT_WINDOWS_CER = process.env.INSTALLER_CERT_WINDOWS_CER;
   const CERT_PASSWORD = process.env.WIN_CERT_PASSWORD;
   const CONTAINER_NAME = process.env.WIN_CERT_CONTAINER_NAME;
+  const filePath = configuration.path;
 
   if (INSTALLER_CERT_WINDOWS_CER && CERT_PASSWORD && CONTAINER_NAME) {
     console.log('[CustomSign] Legacy eToken configuration detected. Signing...');
-    
     const cmd = `"${SIGNTOOL_PATH}" sign -d "PTSolns IDE" -f "${INSTALLER_CERT_WINDOWS_CER}" -csp "eToken Base Cryptographic Provider" -k "[{{${CERT_PASSWORD}}}]=${CONTAINER_NAME}" -fd sha256 -tr http://timestamp.digicert.com -td SHA256 -v "${filePath}"`;
-
-    try {
-      execSync(cmd, { stdio: 'inherit' });
-      console.log(`[CustomSign] Successfully signed with Legacy eToken: ${path.basename(filePath)}`);
-    } catch (error) {
-      console.error(`[CustomSign] Legacy signing failed.`);
-      throw error; // Fail the build if both methods fail
-    }
+    execSync(cmd, { stdio: 'inherit' });
   } else {
-    // If we are in GitHub Actions and expected to sign, but neither config was found:
+    // Only fail if we expected to sign but couldn't
     if (process.env.GITHUB_ACTIONS) {
-        console.warn(
-          `[CustomSign] FAILED: Neither Azure nor Legacy configuration was complete.\n` +
-          `Azure Metdata: ${process.env.AZURE_SIGNING_METADATA_PATH ? 'OK' : 'MISSING'}\n` +
-          `Legacy Cert: ${INSTALLER_CERT_WINDOWS_CER ? 'OK' : 'MISSING'}`
-        );
-        process.exit(1);
+       console.warn('[CustomSign] Failed: No valid signing configuration found.');
+       process.exit(1);
     }
   }
 };
