@@ -25,7 +25,7 @@ on:
 
   push:
     branches:
-      - main
+      - new-nest
       - '[0-9]+.[0-9]+.x'
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
@@ -381,7 +381,20 @@ jobs:
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
-          yarn --cwd electron-app package
+          if [ "$IS_WINDOWS_CONFIG" = "true" ]; then
+            # Phase A: create unpacked payload only
+            (cd electron-app && npx electron-builder --win --x64 --dir)
+          
+            # We'll sign win-unpacked in the next step (Azure Trusted Signing)
+          
+            # Phase C: build final installer/zip from the signed payload
+            (cd electron-app && npx electron-builder --win --x64 --prepackaged dist/win-unpacked)
+
+          else
+            # Non-windows unchanged
+            yarn --cwd electron-app package
+          fi
+
 
          
 # DIAG
@@ -419,6 +432,31 @@ jobs:
           # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
 
+      - name: Sign Windows payload (win-unpacked EXE/DLL)
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: electron-app/dist/win-unpacked
+          files-folder-filter: exe,dll
+
+      - name: Verify payload signatures (win-unpacked)
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          $root = "electron-app/dist/win-unpacked"
+          $r = Get-ChildItem $root -Recurse -Include *.exe,*.dll -File | % {
+            $s = Get-AuthenticodeSignature $_.FullName
+            [pscustomobject]@{ Status=$s.Status; Path=$_.FullName }
+          }
+          $r | Group-Object Status | ForEach-Object { "$($_.Name): $($_.Count)" }
+          if (($r | Where-Object {$_.Status -ne "Valid"}).Count -gt 0) { exit 1 }
+      
+
+
+
       # - name: Sign CH340 driver installer (Azure Trusted Signing)
       #   if: matrix.config.name == 'Windows'
       #   uses: azure/trusted-signing-action@v0
@@ -438,8 +476,7 @@ jobs:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
-          # NOTE: action expects a filter list like "exe,msi"
+          files-folder: electron-app/dist/build-artifacts
           files-folder-filter: exe,msi
 
 
