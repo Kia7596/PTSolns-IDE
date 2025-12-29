@@ -1,4 +1,5 @@
 import { injectable } from '@theia/core/shared/inversify';
+import { platform } from 'process';
 import { UpdateInfo, CancellationToken, autoUpdater } from 'electron-updater';
 import { UpdateChannel } from '../../browser/arduino-preferences';
 import {
@@ -72,6 +73,10 @@ export class IDEUpdaterImpl implements IDEUpdater {
   }
 
   async downloadUpdate(): Promise<void> {
+    if (platform === 'darwin') { // macOS
+      this.clients.forEach((c) => c.notifyUpdaterFailed(new Error('Please download the update manually from the website.')));
+      return;
+    }
     try {
       await this.updater.downloadUpdate(this.cancellationToken);
     } catch (e) {
