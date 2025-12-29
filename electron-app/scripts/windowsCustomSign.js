@@ -37,7 +37,6 @@ exports.default = async function (configuration) {
   // ---------------------------------------------------------
   // STRATEGY 2: Legacy eToken / Certificate Signing (Fallback)
   // ---------------------------------------------------------
-  // This is your original logic, preserved exactly as you had it.
   
   if (process.env.CAN_SIGN !== 'true') {
     console.log('[CustomSign] Skipping legacy signing (CAN_SIGN is not true).');
@@ -52,6 +51,7 @@ exports.default = async function (configuration) {
   if (SIGNTOOL_PATH && INSTALLER_CERT_WINDOWS_CER && CERT_PASSWORD && CONTAINER_NAME) {
     console.log('[CustomSign] Legacy eToken configuration detected. Signing...');
     
+    // Your original legacy command
     const cmd = `"${SIGNTOOL_PATH}" sign -d "PTSolns IDE" -f "${INSTALLER_CERT_WINDOWS_CER}" -csp "eToken Base Cryptographic Provider" -k "[{{${CERT_PASSWORD}}}]=${CONTAINER_NAME}" -fd sha256 -tr http://timestamp.digicert.com -td SHA256 -v "${filePath}"`;
 
     try {
@@ -62,16 +62,10 @@ exports.default = async function (configuration) {
       throw error; // Fail the build if both methods fail
     }
   } else {
-    console.warn(
-      `[CustomSign] Custom windows signing was NOT performed. Missing legacy variables:\n` +
-      `SIGNTOOL_PATH: ${SIGNTOOL_PATH}\n` +
-      `CERT: ${INSTALLER_CERT_WINDOWS_CER ? 'OK' : 'MISSING'}\n` +
-      `PASS: ${CERT_PASSWORD ? 'OK' : 'MISSING'}\n` +
-      `CONTAINER: ${CONTAINER_NAME}`
-    );
-    // If we are in GitHub Actions and explicitly expected to sign, we should fail.
+    // If we are in GitHub Actions and expected to sign, fail hard.
     if (process.env.GITHUB_ACTIONS) {
-      process.exit(1);
+        console.warn(`[CustomSign] Failed: Neither Azure nor Legacy configuration was complete.`);
+        process.exit(1);
     }
   }
 };
