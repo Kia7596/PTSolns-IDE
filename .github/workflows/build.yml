@@ -6,7 +6,7 @@ name: PTSolns IDE
 on:
   push:
     branches:
-      - signing-lab
+      - main
       - '[0-9]+.[0-9]+.x'
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
@@ -14,7 +14,7 @@ on:
       - '.vscode/**'
       - 'docs/**'
       - 'scripts/**'
-      - '!scripts/windowsCustomSign.js' # Allow changes to the signing script
+      - '!scripts/windowsCustomSign.js'
       - '!scripts/merge-channel-files.js'
       - 'static/**'
       - '*.md'
@@ -178,11 +178,10 @@ jobs:
     env:
       BUILD_ARTIFACTS_PATH: electron-app/dist/build-artifacts
       IS_WINDOWS_CONFIG: ${{ matrix.config.name == 'Windows' }}
-      # Legacy Cert Variables (Required for fallback logic)
+      # Legacy Cert Variables (Required for fallback logic in the script)
       INSTALLER_CERT_WINDOWS_CER: "/tmp/cert.cer"
       WIN_CERT_PASSWORD: ${{ secrets[matrix.config.certificate-password-secret] }}
       WIN_CERT_CONTAINER_NAME: ${{ secrets[matrix.config.certificate-container] }}
-      # Assuming signtool is in path or defined here. If Azure install works, it handles its own tools.
       SIGNTOOL_PATH: "C:/Program Files (x86)/Windows Kits/10/bin/10.0.19041.0/x86/signtool.exe"
       PUPPETEER_SKIP_DOWNLOAD: true
 
@@ -280,7 +279,7 @@ jobs:
           CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
         working-directory: ${{ matrix.config.working-directory || './' }}
         run: |
-          # Export P12 for Mac/Legacy Windows (Standard Logic)
+          # Export P12 for Mac/Legacy Windows
           if [ $CAN_SIGN = false ]; then
             echo "Skipping certificate export."
           else
@@ -303,12 +302,28 @@ jobs:
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
           
-          # Triggers electron-builder.
-          # On Windows, it calls ./scripts/windowsCustomSign.js which uses AZURE vars.
+          # This command triggers electron-builder.
+          # On Windows, it calls ./scripts/windowsCustomSign.js using the vars we set above.
           yarn --cwd electron-app package
 
       # -----------------------------------------------------------------------
-      # Upload & Merge steps (Unchanged)
+      # 3. Sign the Final Installer (Windows Only)
+      #    This ensures the Setup.exe itself is signed, not just the inside files.
+      #    We use 'v0' here to avoid YAML syntax errors.
+      # -----------------------------------------------------------------------
+      - name: Sign Windows installers (Azure Trusted Signing)
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
+          files-folder-filter: exe,msi
+          timestamp-url: http://timestamp.digicert.com
+
+      # -----------------------------------------------------------------------
+      # Upload & Merge steps (Standard)
       # -----------------------------------------------------------------------
       - name: Stage channel file for merge
         if: needs.select-targets.outputs.merge-channel-files == 'true' && matrix.config.mergeable-channel-file == 'true'
