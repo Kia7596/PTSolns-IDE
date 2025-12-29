@@ -143,13 +143,11 @@ export class FirstStartupInstaller extends Contribution {
         }
       });
 
-      // Set flag only if no critical errors occurred
-      if (boardInstallationErrors.length === 0) {
-        await this.localStorageService.setData(
-          FirstStartupInstaller.INIT_LIBS_AND_PACKAGES,
-          true
-        );
-      }
+      // Set flag to prevent re-execution on subsequent startups, even if some errors occurred
+      await this.localStorageService.setData(
+        FirstStartupInstaller.INIT_LIBS_AND_PACKAGES,
+        true
+      );
     }
   }
 }
