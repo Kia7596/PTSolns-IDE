@@ -128,13 +128,18 @@
       "resources/icons/512x512.png",
       "node_modules/reflect-metadata/**",
        "!**node_modules/**"
-    ],
+      
     "extraResources": [
+      {
+        "from": "../node_modules/reflect-metadata",
+        "to": "app/node_modules/reflect-metadata"
+      },
       {
         "from": "plugins",
         "to": "app/plugins"
       }
     ],
+
     "extraFiles": [
     {
         "from": "../drivers/ch340-drivers",
