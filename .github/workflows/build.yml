@@ -1,17 +1,37 @@
 # -----------------------------------------------------------------------------
-# PTSolns IDE - Clean Build (Syntax Verified)
+# PTSolns IDE - GitHub Actions Workflow
+#
+# Key fixes included in this version:
+# 1) REMOVE `on: create:` trigger (it can cause extra runs / confusing behavior).
+# 2) ADD `environment: production` to the *build* job
+#    - This is critical if you want Azure Entra "Federated credentials" of type
+#      Environment to work, because the OIDC subject becomes environment-based.
+# 3) ADD `audience: api://AzureADTokenExchange` to azure/login
+#    - Must match what you configured in Azure Federated Credential Audience.
+# 4) KEEP your existing main/tag triggers for normal builds + releases.
+#
+# NOTE:
+# - If your Azure federated credential is still "Tag" based, your subject will
+#   look like: repo:ORG/REPO:ref:refs/tags/x.y.z
+# - If your Azure federated credential is "Environment" based, the subject will
+#   include the environment info (and the job MUST have `environment:` set).
 # -----------------------------------------------------------------------------
+
 name: PTSolns IDE
 
 on:
+  # NOTE: Removed `create:` trigger on purpose.
+  # create:
+
   push:
     branches:
       - main
-      - signing-lab
       - '[0-9]+.[0-9]+.x'
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
     paths-ignore:
+      - '.github/**'
+      - '!.github/workflows/build.yml'
       - '.vscode/**'
       - 'docs/**'
       - 'scripts/**'
@@ -37,6 +57,9 @@ on:
       - 'static/**'
       - '*.md'
 
+  # schedule:
+  #   - cron: '0 3 * * *' # run every day at 3AM
+
   workflow_run:
     workflows:
       - Push Container Images
@@ -55,13 +78,22 @@ env:
 
   BASE_BUILD_DATA: |
     - config:
+        # Human identifier for the job.
         name: Windows
         runs-on: windows-latest
-        container: null
+        # The value is a string representing a JSON document.
+        # Setting this to null causes the job to run directly in the runner machine instead of in a container.
+        container: |
+          null
+        # Name of the secret that contains the certificate.
         certificate-secret: INSTALLER_CERT_WINDOWS_CER
+        # Name of the secret that contains the certificate password.
         certificate-password-secret: INSTALLER_CERT_WINDOWS_PASSWORD
+        # File extension for the certificate.
         certificate-extension: pfx
+        # Container for windows cert signing
         certificate-container: INSTALLER_CERT_WINDOWS_CONTAINER
+        # Arbitrary identifier used to give the workflow artifact uploaded by each "build" matrix job a unique name.
         job-transfer-artifact-suffix: Windows_64bit
         mergeable-channel-file: 'false'
       artifacts:
@@ -75,7 +107,10 @@ env:
     - config:
         name: Linux
         runs-on: ubuntu-latest
-        container: { \"image\": \"ghcr.io/arduino/arduino-ide/linux:main\" }
+        container: |
+          {
+            \"image\": \"ghcr.io/arduino/arduino-ide/linux:main\"
+          }
         job-transfer-artifact-suffix: Linux_64bit
         mergeable-channel-file: 'false'
       artifacts:
@@ -87,7 +122,10 @@ env:
     - config:
         name: macOS x86
         runs-on: macos-15-intel
-        container: null
+        container: |
+          null
+        # APPLE_SIGNING_CERTIFICATE_P12 secret was produced by following the procedure from:
+        # https://www.kencochrane.com/2020/08/01/build-and-sign-golang-binaries-for-macos-with-github-actions/#exporting-the-developer-certificate
         certificate-secret: APPLE_SIGNING_CERTIFICATE_P12
         certificate-password-secret: KEYCHAIN_PASSWORD
         certificate-extension: p12
@@ -102,7 +140,8 @@ env:
     - config:
         name: macOS ARM
         runs-on: macos-latest
-        container: null
+        container: |
+          null
         certificate-secret: APPLE_SIGNING_CERTIFICATE_P12
         certificate-password-secret: KEYCHAIN_PASSWORD
         certificate-extension: p12
@@ -115,7 +154,9 @@ env:
           name: macOS_arm64_zip
 
   PAID_RUNNER_BUILD_DATA: |
-    # (Kept empty/commented)
+    # This system was implemented to allow selective use of paid GitHub-hosted runners, due to the Apple Silicon runner
+    # incurring a charge at that time. Free Apple Silicon runners are now available so the configuration was moved to
+    # `BASE_BUILD_DATA`, but the system was left in place for future use.
 
 jobs:
   run-determination:
@@ -128,11 +169,15 @@ jobs:
         id: determination
         run: |
           RELEASE_BRANCH_REGEX="refs/heads/[0-9]+.[0-9]+.x"
-          if [[ "${{ github.event_name }}" != "create" || "${{ github.ref }}" =~ $RELEASE_BRANCH_REGEX ]]; then
-            echo "result=true" >> $GITHUB_OUTPUT
+          if [[
+            "${{ github.event_name }}" != "create" ||
+            "${{ github.ref }}" =~ $RELEASE_BRANCH_REGEX
+          ]]; then
+            RESULT="true"
           else
-            echo "result=false" >> $GITHUB_OUTPUT
+            RESULT="false"
           fi
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
 
   build-type-determination:
     needs: run-determination
@@ -143,21 +188,39 @@ jobs:
       is-nightly: ${{ steps.determination.outputs.is-nightly }}
       channel-name: ${{ steps.determination.outputs.channel-name }}
       publish-to-s3: ${{ steps.determination.outputs.publish-to-s3 }}
+
+    # NOTE: Keeping this. It’s fine for non-Azure steps too.
     environment: production
+
     permissions: {}
     steps:
       - name: Determine the type of build
         id: determination
         run: |
-          if [[ "${{ startsWith(github.ref, 'refs/tags/') }}" == "true" ]]; then
-            echo "is-release=true" >> $GITHUB_OUTPUT
-            echo "is-nightly=false" >> $GITHUB_OUTPUT
-            echo "channel-name=stable" >> $GITHUB_OUTPUT
+          if [[
+            "${{ startsWith(github.ref, 'refs/tags/') }}" == "true"
+          ]]; then
+            is_release="true"
+            is_nightly="false"
+            channel_name="stable"
+          elif [[
+            "${{ github.event_name }}" == "schedule" ||
+            (
+              "${{ github.event_name }}" == "workflow_dispatch" &&
+              "${{ github.ref }}" == "refs/heads/main"
+            )
+          ]]; then
+            is_release="false"
+            is_nightly="true"
+            channel_name="nightly"
           else
-            echo "is-release=false" >> $GITHUB_OUTPUT
-            echo "is-nightly=true" >> $GITHUB_OUTPUT
-            echo "channel-name=nightly" >> $GITHUB_OUTPUT
+            is_release="false"
+            is_nightly="false"
+            channel_name="nightly"
           fi
+          echo "is-release=$is_release" >> $GITHUB_OUTPUT
+          echo "is-nightly=$is_nightly" >> $GITHUB_OUTPUT
+          echo "channel-name=$channel_name" >> $GITHUB_OUTPUT
 
   select-targets:
     needs: build-type-determination
@@ -171,27 +234,70 @@ jobs:
       - name: Assemble target data
         id: assemble
         run: |
-          build_matrix="$(echo "${{ env.BASE_BUILD_DATA }}" | yq --output-format json '[.[].config]')"
-          artifact_matrix="$(echo "${{ env.BASE_BUILD_DATA }}" | yq --output-format json 'map(.artifacts[] + (.config | pick(["job-transfer-artifact-suffix"])))')"
-          
+          if [[
+            "${{ needs.build-type-determination.outputs.is-release }}" == "true" ||
+            "${{ github.event.inputs.paid-runners }}" == "true"
+          ]]; then
+            build_matrix="$(
+              (
+                echo "${{ env.BASE_BUILD_DATA }}";
+                echo "${{ env.PAID_RUNNER_BUILD_DATA }}"
+              ) | \
+              yq \
+                --output-format json \
+                '[.[].config]'
+            )"
+            artifact_matrix="$(
+              (
+                echo "${{ env.BASE_BUILD_DATA }}";
+                echo "${{ env.PAID_RUNNER_BUILD_DATA }}"
+              ) | \
+              yq \
+                --output-format json \
+                'map(.artifacts[] + (.config | pick(["job-transfer-artifact-suffix"])))'
+            )"
+            merge_channel_files="true"
+          else
+            build_matrix="$(
+              echo "${{ env.BASE_BUILD_DATA }}" | \
+              yq \
+                --output-format json \
+                '[.[].config]'
+            )"
+            artifact_matrix="$(
+              echo "${{ env.BASE_BUILD_DATA }}" | \
+              yq \
+                --output-format json \
+                'map(.artifacts[] + (.config | pick(["job-transfer-artifact-suffix"])))'
+            )"
+            merge_channel_files="false"
+          fi
           delimiter="$RANDOM"
           echo "build-matrix<<$delimiter" >> $GITHUB_OUTPUT
           echo "$build_matrix" >> $GITHUB_OUTPUT
           echo "$delimiter" >> $GITHUB_OUTPUT
-          
+          delimiter="$RANDOM"
           echo "artifact-matrix<<$delimiter" >> $GITHUB_OUTPUT
           echo "$artifact_matrix" >> $GITHUB_OUTPUT
           echo "$delimiter" >> $GITHUB_OUTPUT
-          
-          echo "merge-channel-files=false" >> $GITHUB_OUTPUT
+          echo "merge-channel-files=$merge_channel_files" >> $GITHUB_OUTPUT
 
   build:
     name: build (${{ matrix.config.name }})
-    needs: [build-type-determination, select-targets]
+    needs:
+      - build-type-determination
+      - select-targets
+
+    # ✅ CRITICAL:
+    # If you want Azure Entra Federated Credential of type "Environment" to work,
+    # the job that runs azure/login MUST be bound to that environment.
     environment: production
+
+    # ADDED: required for Azure OIDC login
     permissions:
       id-token: write
       contents: read
+
     env:
       BUILD_ARTIFACTS_PATH: electron-app/dist/build-artifacts
       IS_WINDOWS_CONFIG: ${{ matrix.config.name == 'Windows' }}
@@ -207,9 +313,11 @@ jobs:
 
     runs-on: ${{ matrix.config.runs-on }}
     container: ${{ fromJSON(matrix.config.container) }}
+
     defaults:
       run:
         shell: bash
+
     timeout-minutes: 90
 
     steps:
@@ -224,7 +332,11 @@ jobs:
           cache: ${{ fromJSON(matrix.config.container) == null && 'yarn' || null }}
 
       - name: Install Yarn
-        run: npm install --global "yarn@${{ env.YARN_VERSION }}"
+        run: |
+          npm \
+            install \
+              --global \
+              "yarn@${{ env.YARN_VERSION }}"
 
       - name: Install Python 3.x
         if: fromJSON(matrix.config.container) == null
@@ -254,10 +366,8 @@ jobs:
           CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
         working-directory: ${{ matrix.config.working-directory || './' }}
         run: |
-          if [ $CAN_SIGN = false ]; then
-            echo "Skipping app signing: certificate not provided."
-          elif [ "$IS_WINDOWS_CONFIG" = "true" ]; then
-            echo "Skipping app signing on Windows (handled by Azure Trusted Signing later)."
+          if [ $CAN_SIGN = false ] || [ $IS_WINDOWS_CONFIG = true ]; then
+            echo "Skipping the app signing: certificate not provided."
           else
             export CSC_LINK="${{ runner.temp }}/signing_certificate.${{ matrix.config.certificate-extension }}"
             echo "${{ secrets[matrix.config.certificate-secret] }}" | base64 --decode > "$CSC_LINK"
@@ -268,25 +378,37 @@ jobs:
           npx node-gyp install
           yarn install
 
-          # --- FIXES: Dependencies for Mac/Linux/Windows ---
-          yarn --cwd electron-app add reflect-metadata
-          yarn --cwd arduino-ide-extension add inversify@5.1.1
-          yarn --cwd arduino-ide-extension add typescript@4.9.5 --dev
-          # -------------------------------------------------
-
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
-          
-          if [ "$IS_WINDOWS_CONFIG" = "true" ]; then
-            echo "Skipping Windows packaging here; Windows packaging handled later."
-          else
-            yarn --cwd electron-app package
-          fi
+          yarn --cwd electron-app package
 
-      # -----------------------------------------------------------------------
-      # WINDOWS: Signing Steps
-      # -----------------------------------------------------------------------
+         
+# DIAG
+#       - name: Diagnostic - find CH340 exe in electron-app/dist
+#         if: matrix.config.name == 'Windows'
+#         shell: pwsh
+#         run: |
+#           Write-Host "PWD: $PWD"
+#           Write-Host "=== Listing electron-app/dist (top level) ==="
+#           Get-ChildItem "electron-app/dist" -Force | Format-Table Name,Mode,LastWriteTime
+
+#           Write-Host "=== Searching for ch340.exe under electron-app/dist ==="
+#           $hits = Get-ChildItem "electron-app/dist" -Recurse -Filter "ch340.exe" -File -ErrorAction SilentlyContinue
+#           if (-not $hits -or $hits.Count -eq 0) {
+#             Write-Host "NO ch340.exe found under electron-app/dist"
+#             exit 0
+#           }
+
+#           Write-Host "FOUND ch340.exe at:"
+#           $hits | ForEach-Object { Write-Host " - $($_.FullName)" }
+
+#           Write-Host "=== (Optional) Searching for drivers/ch340-drivers folder ==="
+#           $dirs = Get-ChildItem "electron-app/dist" -Recurse -Directory -ErrorAction SilentlyContinue |
+#             Where-Object { $_.FullName -match "drivers\\ch340-drivers$" }
+#           $dirs | ForEach-Object { Write-Host " - DIR: $($_.FullName)" }
+
+      # ADDED: Azure OIDC login (Windows only)
       - name: Azure login (OIDC)
         if: matrix.config.name == 'Windows'
         uses: azure/login@v2
@@ -294,43 +416,21 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          # ✅ IMPORTANT: must match the Audience in Azure Federated Credential
           audience: api://AzureADTokenExchange
 
-      - name: Build Windows unpacked (dir)
-        if: matrix.config.name == 'Windows'
-        shell: bash
-        run: |
-          yarn --cwd electron-app electron-builder --win --x64 --dir
+      # - name: Sign CH340 driver installer (Azure Trusted Signing)
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: electron-app/dist/win-unpacked/resources/drivers/ch340-drivers
+      #     files-folder-filter: exe
 
-      - name: Find Windows unpacked folder
-        id: find_unpacked
-        if: matrix.config.name == 'Windows'
-        shell: pwsh
-        run: |
-          $base = Join-Path $PWD "electron-app/dist"
-          $dir = Get-ChildItem $base -Directory | Where-Object { $_.Name -like "*unpacked*" } | Select-Object -First 1
-          if (-not $dir) { throw "Could not find *unpacked* directory under electron-app/dist" }
-          "unpacked=$($dir.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "Unpacked dir: $($dir.FullName)"
 
-      - name: Sign unpacked app binaries (Azure Trusted Signing)
-        if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0
-        with:
-          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ steps.find_unpacked.outputs.unpacked }}
-          files-folder-filter: exe,dll,node
-          files-folder-recurse: false
-          timestamp-url: http://timestamp.digicert.com
-
-      - name: Build Windows installer from signed unpacked
-        if: matrix.config.name == 'Windows'
-        shell: bash
-        run: |
-          yarn --cwd electron-app electron-builder --win --x64 --prepackaged "${{ steps.find_unpacked.outputs.unpacked }}" --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}' -c.directories.output=dist/build-artifacts
-
+      # ADDED: Sign Windows artifacts (Windows only)
       - name: Sign Windows installers (Azure Trusted Signing)
         if: matrix.config.name == 'Windows'
         uses: azure/trusted-signing-action@v0
@@ -339,22 +439,29 @@ jobs:
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.BUILD_ARTIFACTS_PATH) || env.BUILD_ARTIFACTS_PATH }}
+          # NOTE: action expects a filter list like "exe,msi"
           files-folder-filter: exe,msi
-          timestamp-url: http://timestamp.digicert.com
 
-      # (Upload & Merge steps)
+
+
       - name: Stage channel file for merge
-        if: needs.select-targets.outputs.merge-channel-files == 'true' && matrix.config.mergeable-channel-file == 'true'
+        if: >
+          needs.select-targets.outputs.merge-channel-files == 'true' &&
+          matrix.config.mergeable-channel-file == 'true'
         working-directory: ${{ matrix.config.working-directory || './' }}
         run: |
           staged_channel_files_path="${{ runner.temp }}/staged-channel-files"
           mkdir "$staged_channel_files_path"
-          mv "${{ env.BUILD_ARTIFACTS_PATH }}/${{ needs.build-type-determination.outputs.channel-name }}-mac.yml" "${staged_channel_files_path}/${{ needs.build-type-determination.outputs.channel-name }}-mac-${{ runner.arch }}.yml"
+          mv \
+            "${{ env.BUILD_ARTIFACTS_PATH }}/${{ needs.build-type-determination.outputs.channel-name }}-mac.yml" \
+            "${staged_channel_files_path}/${{ needs.build-type-determination.outputs.channel-name }}-mac-${{ runner.arch }}.yml"
           echo "STAGED_CHANNEL_FILES_PATH=$staged_channel_files_path" >> "$GITHUB_ENV"
 
       - name: Upload staged-for-merge channel file artifact
         uses: actions/upload-artifact@v4
-        if: needs.select-targets.outputs.merge-channel-files == 'true' && matrix.config.mergeable-channel-file == 'true'
+        if: >
+          needs.select-targets.outputs.merge-channel-files == 'true' &&
+          matrix.config.mergeable-channel-file == 'true'
         with:
           if-no-files-found: error
           name: ${{ env.STAGED_CHANNEL_FILE_ARTIFACT_PREFIX }}${{ matrix.config.job-transfer-artifact-suffix }}
@@ -364,7 +471,10 @@ jobs:
         working-directory: ${{ matrix.config.working-directory || './' }}
         run: |
           ARTIFACTS_DIR="${{ env.BUILD_ARTIFACTS_PATH }}"
+          echo "Recalculating SHA512 hashes for files in $ARTIFACTS_DIR..."
+          # Find all relevant application files and calculate their sha512sum
           find "$ARTIFACTS_DIR" \( -name "*.exe" -o -name "*.msi" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.dmg" \) -type f -print0 | xargs -0 sha512sum > sha512sums.txt
+          echo "SHA512 hash recalculation complete. Checksums saved to sha512sums.txt"
 
       - name: Upload SHA512 checksums report
         uses: actions/upload-artifact@v4
@@ -381,104 +491,196 @@ jobs:
       - name: Manual Clean up for self-hosted runners
         if: runner.os == 'Windows' && matrix.config.working-directory
         shell: cmd
-        run: rmdir /s /q "${{ matrix.config.working-directory }}\${{ env.BUILD_ARTIFACTS_PATH }}"
+        run: |
+          rmdir /s /q "${{ matrix.config.working-directory }}\${{ env.BUILD_ARTIFACTS_PATH }}"
 
   merge-channel-files:
-    needs: [build-type-determination, select-targets, build]
+    needs:
+      - build-type-determination
+      - select-targets
+      - build
     if: needs.select-targets.outputs.merge-channel-files == 'true'
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Set environment variables
-        run: echo "CHANNEL_FILES_PATH=${{ runner.temp }}/channel-files" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+        run: |
+          echo "CHANNEL_FILES_PATH=${{ runner.temp }}/channel-files" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download staged-for-merge channel file artifacts
+        uses: actions/download-artifact@v5
         with:
           merge-multiple: true
           path: ${{ env.CHANNEL_FILES_PATH }}
           pattern: ${{ env.STAGED_CHANNEL_FILE_ARTIFACT_PREFIX }}*
-      - uses: geekyeggo/delete-artifact@v5
+
+      - name: Remove no longer needed artifacts
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: ${{ env.STAGED_CHANNEL_FILE_ARTIFACT_PREFIX }}*
-      - uses: actions/setup-node@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
           cache: 'yarn'
-      - uses: actions/setup-go@v5
+
+      - name: Install Go
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-      - uses: arduino/setup-task@v2
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           version: 3.x
-      - if: runner.os == 'Linux'
+
+      - name: Install dependencies (Linux only)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libx11-dev libxkbfile-dev libsecret-1-dev
-      - run: yarn
-      - name: Update SHA512 sums
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Debug Paths
+        run: |
+          echo "Runner temp directory: ${{ runner.temp }}"
+          ls -la ${{ runner.temp }}
+          echo "Channel files path variable: ${{ env.CHANNEL_FILES_PATH }}"
+          ls -la ${{ env.CHANNEL_FILES_PATH }} || true
+
+      - name: Update SHA512 sums in channel files
         working-directory: ${{ env.CHANNEL_FILES_PATH }}
         run: |
+          echo "Contents of ${{ env.CHANNEL_FILES_PATH }}:"
           ls -R ${{ env.CHANNEL_FILES_PATH }}
           declare -A HASHS
-          for report in ${{ env.CHANNEL_FILES_PATH }}/sha512sums-report-*; do
-            [ -f "$report" ] || continue
-            while read -r hash filepath; do
-              HASHS["$(basename "$filepath")"]="$hash"
-            done < "$report"
+          echo "Loading SHA512 hashes from downloaded reports..."
+
+          for report_file in ${{ env.CHANNEL_FILES_PATH }}/sha512sums-report-*; do
+            if [ -f "$report_file" ]; then
+              echo "--- Reading from SHA512 report: $report_file ---"
+              cat "$report_file"
+              while IFS=$'  ' read -r hash filepath; do
+                BASENAME=$(basename "$filepath")
+                HASHS["$BASENAME"]="$hash"
+                echo "  Loaded: $BASENAME ($hash)"
+              done < "$report_file"
+            else
+              echo "  SHA512 report file not found: $report_file"
+            fi
           done
+
+          echo "--- Finished loading SHA512 hashes ---"
+          echo "Loaded SHA512 hashes for lookup:"
+          for key in "${!HASHS[@]}"; do
+            echo "  $key: ${HASHS[$key]}"
+          done
+
+          # Process channel files (latest.yml and stable.yml)
           for file in latest.yml stable.yml; do
-            [ -f "$file" ] || continue
-            for key in "${!HASHS[@]}"; do
-               yq -i ".files[] |= if .url | basename == \"$key\" then .sha512 = \"${HASHS[$key]}\" else . end" "$file"
-               yq -i "if .path | basename == \"$key\" then .sha512 = \"${HASHS[$key]}\" else . end" "$file"
-            done
+            if [ -f "$file" ]; then
+              echo "--- Processing channel file: $file ---"
+              echo "Current content of $file before update:"
+              cat "$file"
+              for basename_key in "${!HASHS[@]}"; do
+                hash_value="${HASHS[$basename_key]}"
+                echo "  Attempting to update hash for '$basename_key' with new hash '$hash_value' in $file"
+
+                # Update .files[] entries
+                yq -i \
+                  ".files[] |= if .url | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "$file"
+
+                # Update top-level .path entries if they exist
+                yq -i \
+                  "if .path | basename == \"$basename_key\" then .sha512 = \"$hash_value\" else . end" \
+                  "$file"
+              done
+              echo "--- Updated $file ---"
+              echo "Content of $file after update:"
+              cat "$file"
+            else
+              echo "  Channel file not found: $file. Skipping."
+            fi
           done
-      - run: node ./scripts/merge-channel-files.js --channel "${{ needs.build-type-determination.outputs.channel-name }}" --input "${{ env.CHANNEL_FILES_PATH }}"
-      - uses: actions/upload-artifact@v4
+
+      - name: Merge "channel update info files"
+        run: |
+          node \
+            ./scripts/merge-channel-files.js \
+              --channel "${{ needs.build-type-determination.outputs.channel-name }}" \
+              --input "${{ env.CHANNEL_FILES_PATH }}"
+
+      - name: Upload merged channel files job transfer artifact
+        uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}channel-files
           path: ${{ env.CHANNEL_FILES_PATH }}
 
   artifacts:
-    needs: [select-targets, build]
+    name: ${{ matrix.artifact.name }} artifact
+    needs:
+      - select-targets
+      - build
     if: always() && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
+    env:
+      BUILD_ARTIFACTS_FOLDER: build-artifacts
+
     strategy:
       matrix:
         artifact: ${{ fromJson(needs.select-targets.outputs.artifact-matrix) }}
+
     steps:
-      - uses: actions/download-artifact@v5
+      - name: Download job transfer artifact that contains ${{ matrix.artifact.name }} tester build
+        uses: actions/download-artifact@v5
         with:
           name: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}${{ matrix.artifact.job-transfer-artifact-suffix }}
-          path: build-artifacts
-      - uses: actions/upload-artifact@v4
+          path: ${{ env.BUILD_ARTIFACTS_FOLDER }}
+
+      - name: Upload tester build artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact.name }}
-          path: build-artifacts/${{ matrix.artifact.path }}
+          path: ${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ matrix.artifact.path }}
 
   changelog:
-    needs: [build-type-determination, build]
+    needs:
+      - build-type-determination
+      - build
     runs-on: ubuntu-latest
     outputs:
       BODY: ${{ steps.changelog.outputs.BODY }}
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - id: changelog
+
+      - name: Generate Changelog
+        id: changelog
         env:
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
         run: |
           export LATEST_TAG=$(git describe --abbrev=0)
           export GIT_LOG=$(git log --pretty=" - %s [%h]" $LATEST_TAG..HEAD | sed 's/ *$//g')
           if [ "$IS_RELEASE" = true ]; then
-            BODY="$GIT_LOG"
+            export BODY=$(echo -e "$GIT_LOG")
           else
-            LATEST_TAG_WITH_LINK="[$LATEST_TAG](https://github.com/PTSolns/PTSolns-IDE/releases/tag/$LATEST_TAG)"
+            export LATEST_TAG_WITH_LINK=$(echo "[$LATEST_TAG](https://github.com/PTSolns/PTSolns-IDE/releases/tag/$LATEST_TAG)")
             if [ -z "$GIT_LOG" ]; then
-                BODY="There were no changes since version $LATEST_TAG_WITH_LINK."
+                export BODY="There were no changes since version $LATEST_TAG_WITH_LINK."
             else
-                BODY="Changes since version $LATEST_TAG_WITH_LINK:\n$GIT_LOG"
+                export BODY=$(echo -e "Changes since version $LATEST_TAG_WITH_LINK:\n$GIT_LOG")
             fi
           fi
           echo -e "$BODY"
@@ -487,75 +689,150 @@ jobs:
           echo "$BODY" >> $GITHUB_OUTPUT
           echo "$DELIMITER" >> $GITHUB_OUTPUT
           echo "$BODY" > CHANGELOG.txt
-      - if: needs.build-type-determination.outputs.is-nightly == 'true'
+
+      - name: Upload changelog job transfer artifact
+        if: needs.build-type-determination.outputs.is-nightly == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}changelog
           path: CHANGELOG.txt
 
   publish:
-    needs: [build-type-determination, merge-channel-files, changelog]
-    if: always() && needs.build-type-determination.result == 'success' && (needs.merge-channel-files.result == 'skipped' || needs.merge-channel-files.result == 'success') && needs.changelog.result == 'success' && needs.build-type-determination.outputs.publish-to-s3 == 'true' && needs.build-type-determination.outputs.is-nightly == 'true'
+    needs:
+      - build-type-determination
+      - merge-channel-files
+      - changelog
+    if: >
+      always() &&
+      needs.build-type-determination.result == 'success' &&
+      (
+        needs.merge-channel-files.result == 'skipped' ||
+        needs.merge-channel-files.result == 'success'
+      ) &&
+      needs.changelog.result == 'success' &&
+      needs.build-type-determination.outputs.publish-to-s3 == 'true' &&
+      needs.build-type-determination.outputs.is-nightly == 'true'
     runs-on: ubuntu-latest
+
+    env:
+      ARTIFACTS_FOLDER: build-artifacts
+
     environment: production
+
     permissions:
       id-token: write
       contents: read
+
     steps:
-      - uses: actions/download-artifact@v5
+      - name: Download all job transfer artifacts
+        uses: actions/download-artifact@v5
         with:
           merge-multiple: true
-          path: build-artifacts
+          path: ${{ env.ARTIFACTS_FOLDER }}
           pattern: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}*
 
   release:
-    needs: [build-type-determination, merge-channel-files, changelog]
-    if: always() && needs.build-type-determination.result == 'success' && (needs.merge-channel-files.result == 'skipped' || needs.merge-channel-files.result == 'success') && needs.changelog.result == 'success' && needs.build-type-determination.outputs.is-release == 'true'
+    needs:
+      - build-type-determination
+      - merge-channel-files
+      - changelog
+    if: >
+      always() &&
+      needs.build-type-determination.result == 'success' &&
+      (
+        needs.merge-channel-files.result == 'skipped' ||
+        needs.merge-channel-files.result == 'success'
+      ) &&
+      needs.changelog.result == 'success' &&
+      needs.build-type-determination.outputs.is-release == 'true'
     runs-on: ubuntu-latest
+
+    env:
+      ARTIFACTS_FOLDER: build-artifacts
+
     environment: production
+
     permissions:
       id-token: write
       contents: write
+
     steps:
-      - uses: actions/download-artifact@v5
+      - name: Download all job transfer artifacts
+        uses: actions/download-artifact@v5
         with:
           merge-multiple: true
-          path: build-artifacts
+          path: ${{ env.ARTIFACTS_FOLDER }}
           pattern: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}*
-      - working-directory: build-artifacts
+
+      - name: Copy stable channel files to latest
+        working-directory: ${{ env.ARTIFACTS_FOLDER }}
         run: |
-          for file in stable*.yml; do [ -f "$file" ] && cp "$file" "${file/stable/latest}"; done
-          for file in stable*.yml.blockmap; do [ -f "$file" ] && cp "$file" "${file/stable/latest}"; done
-      - working-directory: build-artifacts
+          for file in stable*.yml; do
+            if [ -f "$file" ]; then
+              cp "$file" "${file/stable/latest}"
+            fi
+          done
+          for file in stable*.yml.blockmap; do
+            if [ -f "$file" ]; then
+              cp "$file" "${file/stable/latest}"
+            fi
+          done
+
+      - name: Update channel files with signed EXE info (Windows) using sed
+        working-directory: ${{ env.ARTIFACTS_FOLDER }}
         shell: bash
         run: |
           set -euo pipefail
-          EXE_PATH="$(find . -name '*Windows_64bit.exe' -print -quit)"
-          if [ -n "$EXE_PATH" ]; then
+          ARTIFACTS_DIR="."
+          EXE_PATH="$(find "$ARTIFACTS_DIR" -name '*Windows_64bit.exe' -print -quit)"
+          if [ -z "$EXE_PATH" ]; then
+            echo "Windows 64-bit EXE not found in artifacts. Skipping update for signed EXE."
+          else
+            EXE_BASENAME="$(basename "$EXE_PATH")"
             NEW_SHA512="$(openssl dgst -sha512 -binary "$EXE_PATH" | openssl base64 -A)"
             NEW_SIZE="$(wc -c < "$EXE_PATH" | tr -d ' ')"
+            echo "SIGNED EXE found: $EXE_PATH"
+            echo "NEW_SHA512: $NEW_SHA512"
+            echo "NEW_SIZE: $NEW_SIZE"
             for YML_FILE in stable.yml latest.yml; do
-              [ -f "$YML_FILE" ] || continue
+              if [ ! -f "$YML_FILE" ]; then echo "ERROR: $YML_FILE not found at $YML_FILE"; ls -la "$ARTIFACTS_DIR"; continue; fi
+              echo "---- $YML_FILE BEFORE ----"; cat "$YML_FILE"
+
               sed -i "/Windows_64bit\.exe/,/^[[:space:]]*sha512:/s|sha512:[[:space:]]*[[:alnum:]+/=]*|sha512: $NEW_SHA512|" $YML_FILE
               sed -i "/Windows_64bit\.exe/,+2 s/size: [0-9]*/size: $NEW_SIZE/" $YML_FILE
+
+              echo "---- $YML_FILE AFTER ----"; cat "$YML_FILE"
             done
           fi
-      - id: tag_name
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      - uses: svenstaro/upload-release-action@2.9.0
+
+      - name: Get Tag
+        id: tag_name
+        run: |
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Publish Release [GitHub]
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           release_name: ${{ steps.tag_name.outputs.TAG_NAME }}
-          file: build-artifacts/*
+          file: ${{ env.ARTIFACTS_FOLDER }}/*
           tag: ${{ github.ref }}
           file_glob: true
           body: ${{ needs.changelog.outputs.BODY }}
 
+
   clean:
-    needs: [build, merge-channel-files, publish, release, artifacts]
+    needs:
+      - build
+      - merge-channel-files
+      - publish
+      - release
+      - artifacts
     if: always() && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
+
     steps:
-      - uses: geekyeggo/delete-artifact@v5
+      - name: Remove unneeded job transfer artifacts
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: ${{ env.JOB_TRANSFER_ARTIFACT_PREFIX }}*
