@@ -9,7 +9,6 @@
     "@theia/debug": "1.57.0",
     "@theia/editor": "1.57.0",
     "@theia/electron": "1.57.0",
-    "reflect-metadata": "^0.2.2",
     "@theia/filesystem": "1.57.0",
     "@theia/keymaps": "1.57.0",
     "@theia/messages": "1.57.0",
@@ -126,25 +125,19 @@
       "src-gen",
       "lib",
       "resources/icons/512x512.png",
-      "node_modules/reflect-metadata/**",
-       "!**node_modules/**"
-      
+      "!**node_modules/**"
+    ],
     "extraResources": [
-      {
-        "from": "../node_modules/reflect-metadata",
-        "to": "app/node_modules/reflect-metadata"
-      },
       {
         "from": "plugins",
         "to": "app/plugins"
       }
     ],
-
     "extraFiles": [
-    {
+      {
         "from": "../drivers/ch340-drivers",
         "to": "resources/drivers/ch340-drivers"
-    }
+      }
     ],
     "win": {
       "target": [
