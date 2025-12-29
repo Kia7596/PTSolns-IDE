@@ -451,8 +451,13 @@ jobs:
             $s = Get-AuthenticodeSignature $_.FullName
             [pscustomobject]@{ Status=$s.Status; Path=$_.FullName }
           }
-          $r | Group-Object Status | ForEach-Object { "$($_.Name): $($_.Count)" }
-          if (($r | Where-Object {$_.Status -ne "Valid"}).Count -gt 0) { exit 1 }
+          $r | Group-Object Status | % { "$($_.Name): $($_.Count)" }
+          
+          $bad = $r | Where-Object { $_.Status -ne "Valid" }
+          $bad | Select-Object -First 200 | Format-Table -AutoSize
+          
+          if ($bad.Count -gt 0) { exit 1 }
+
       
 
 
