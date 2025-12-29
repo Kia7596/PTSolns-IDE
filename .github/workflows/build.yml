@@ -379,7 +379,9 @@ jobs:
 
           npx node-gyp install
           yarn install
-
+          yarn --cwd electron-app add reflect-metadata
+          yarn --cwd arduino-ide-extension add inversify@5.1.1
+          yarn --cwd arduino-ide-extension add typescript@4.9.5 --dev
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
@@ -448,6 +450,7 @@ jobs:
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: ${{ steps.find_unpacked.outputs.unpacked }}
           files-folder-filter: exe,dll,node
+          files-folder-recurse: false
 
       - name: Build Windows installer from signed unpacked
         if: matrix.config.name == 'Windows'
