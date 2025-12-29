@@ -386,6 +386,23 @@ jobs:
           yarn --cwd electron-app build
           yarn --cwd electron-app package --verbose 2>&1 | tee electron-app-package.log
 
+      - name: Debug - locate Windows packaging output
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "=== dist folder tree (top) ==="
+          Get-ChildItem "electron-app\dist" -Force | Format-Table Name,Mode,LastWriteTime
+
+          Write-Host "=== searching for win-unpacked ==="
+          Get-ChildItem "electron-app\dist" -Recurse -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match "win-.*unpacked$" } |
+            ForEach-Object { Write-Host "UNPACKED: $($_.FullName)" }
+
+          Write-Host "=== searching for installer exe outputs ==="
+          Get-ChildItem "electron-app\dist" -Recurse -Filter "*.exe" -File -ErrorAction SilentlyContinue |
+            ForEach-Object { Write-Host "EXE: $($_.FullName)" }
+
+
       - name: Upload mac package log
         if: matrix.config.name != 'Windows'
         uses: actions/upload-artifact@v4
