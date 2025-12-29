@@ -419,6 +419,15 @@ jobs:
           if (-not $dir) { throw "Could not find *unpacked* directory under electron-app/dist" }
           "unpacked=$($dir.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "Unpacked dir: $($dir.FullName)"
+          
+      - name: Diagnostic - where is reflect-metadata installed?
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "electron-app node_modules:"
+          Test-Path "electron-app\node_modules\reflect-metadata\package.json"
+          Write-Host "root node_modules:"
+          Test-Path "node_modules\reflect-metadata\package.json"
 
       - name: Guard reflect-metadata exists in unpacked app
         if: matrix.config.name == 'Windows'
