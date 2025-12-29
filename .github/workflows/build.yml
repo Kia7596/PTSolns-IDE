@@ -456,16 +456,39 @@ jobs:
           # Sign only PE binaries. Start narrow (exe,dll). Expand later if needed.
           files-folder-filter: exe,dll
 
-      # NEW: Sign backend tools (clangd, language-server, cli, rg, windows-trash, etc.)
-      - name: Sign Windows app binaries (backend tools) - Azure Trusted Signing
+      # NEW: Sign backend resources tools (clangd, language-server, cli, fwupdater, etc.)
+      - name: Sign Windows backend resources tools - Azure Trusted Signing
         if: matrix.config.name == 'Windows'
         uses: azure/trusted-signing-action@v0
         with:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
-          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend
+          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend\resources
           files-folder-filter: exe,dll
+
+      # NEW: Sign backend native tools (rg.exe)
+      - name: Sign Windows backend native tools - Azure Trusted Signing
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend\native
+          files-folder-filter: exe,dll
+
+
+      # NEW: Sign backend tools (clangd, language-server, cli, rg, windows-trash, etc.)
+      # - name: Sign Windows app binaries (backend tools) - Azure Trusted Signing
+      #   if: matrix.config.name == 'Windows'
+      #   uses: azure/trusted-signing-action@v0
+      #   with:
+      #     endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+      #     trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+      #     certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+      #     files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend
+      #     files-folder-filter: exe,dll
 
       # NEW: Sign build/native helpers (winpty-agent.exe, winpty.dll)
       - name: Sign Windows app binaries (native/build helpers) - Azure Trusted Signing
