@@ -384,6 +384,12 @@ jobs:
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
+      - name: Debug - confirm afterSign exists
+        run: |
+          ls -la electron-app/scripts || true
+          node -c electron-app/scripts/afterSign.js
+
+          
           yarn --cwd electron-app package 
 
       - name: Windows - verify signatures in packaged ZIP (report only)
