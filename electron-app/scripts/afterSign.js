@@ -4,25 +4,33 @@ const path = require("path");
 module.exports = async function (context) {
   const { electronPlatformName, appOutDir } = context;
 
-  console.log("afterSign hook triggered");
-  console.log("Platform:", electronPlatformName);
-  console.log("App output dir:", appOutDir);
+  console.log("[afterSign] platform:", electronPlatformName);
+  console.log("[afterSign] appOutDir:", appOutDir);
 
-  if (electronPlatformName === "win32") {
-    console.log("Running Windows deep signing inside afterSign");
-
-    const script = path.join(__dirname, "sign-win-unpacked.ps1");
-
-    execSync(
-      `powershell -ExecutionPolicy Bypass -File "${script}" "${appOutDir}"`,
-      { stdio: "inherit" }
-    );
+  // Linux: do nothing
+  if (electronPlatformName === "linux") {
+    console.log("[afterSign] Linux detected - skipping");
+    return;
   }
 
-  if (electronPlatformName === "darwin") {
-  console.log("Running macOS notarization");
-  const notarizeMod = require("./notarize");
-  const notarizeFn = notarizeMod.default || notarizeMod;
-  await notarizeFn(context);
-}
+  // Windows: deep sign
+  if (electronPlatformName === "win32") {
+    console.log("[afterSign] Windows detected - deep signing");
+    const script = path.join(__dirname, "sign-win-unpacked.ps1");
+    execSync(`pwsh -ExecutionPolicy Bypass -File "${script}" "${appOutDir}"`, {
+      stdio: "inherit",
+    });
+    return;
+  }
 
+  // macOS: notarize
+  if (electronPlatformName === "darwin") {
+    console.log("[afterSign] macOS detected - notarizing");
+    const notarizeMod = require("./notarize");
+    const notarizeFn = notarizeMod.default || notarizeMod;
+    await notarizeFn(context);
+    return;
+  }
+
+  console.log("[afterSign] Unknown platform - skipping");
+};
