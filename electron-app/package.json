@@ -195,7 +195,7 @@
         }
       ]
     },
-    "afterSign": "scripts/notarize.js",
+    "afterSign": "scripts/afterSign.js",
     "publish": [
       {
         "provider": "s3",
