@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# PTSolns IDE - Final Production Build
+# PTSolns IDE - Final Production Build (Syntax Fixed)
 # -----------------------------------------------------------------------------
 name: PTSolns IDE
 
@@ -129,11 +129,10 @@ jobs:
         run: |
           RELEASE_BRANCH_REGEX="refs/heads/[0-9]+.[0-9]+.x"
           if [[ "${{ github.event_name }}" != "create" || "${{ github.ref }}" =~ $RELEASE_BRANCH_REGEX ]]; then
-            RESULT="true"
+            echo "result=true" >> $GITHUB_OUTPUT
           else
-            RESULT="false"
+            echo "result=false" >> $GITHUB_OUTPUT
           fi
-          echo "result=$RESULT" >> $GITHUB_OUTPUT
 
   build-type-determination:
     needs: run-determination
@@ -269,11 +268,11 @@ jobs:
           npx node-gyp install
           yarn install
 
-          # --- ESSENTIAL FIXES FOR MAC & LINUX ---
+          # --- FIXES: Dependencies for Mac/Linux/Windows ---
           yarn --cwd electron-app add reflect-metadata
           yarn --cwd arduino-ide-extension add inversify@5.1.1
           yarn --cwd arduino-ide-extension add typescript@4.9.5 --dev
-          # ---------------------------------------
+          # -------------------------------------------------
 
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
@@ -286,7 +285,7 @@ jobs:
           fi
 
       # -----------------------------------------------------------------------
-      # WINDOWS: Separate Steps for Unpacked Signing
+      # WINDOWS: Signing Steps
       # -----------------------------------------------------------------------
       - name: Azure login (OIDC)
         if: matrix.config.name == 'Windows'
@@ -316,14 +315,14 @@ jobs:
 
       - name: Sign unpacked app binaries (Azure Trusted Signing)
         if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0.5.1
+        uses: azure/trusted-signing-action@v0
         with:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: ${{ steps.find_unpacked.outputs.unpacked }}
           files-folder-filter: exe,dll,node
-          files-folder-recurse: false  # SAFETY FIX: Prevent Azure Crash
+          files-folder-recurse: false
           timestamp-url: http://timestamp.digicert.com
 
       - name: Build Windows installer from signed unpacked
@@ -332,10 +331,9 @@ jobs:
         run: |
           yarn --cwd electron-app electron-builder --win --x64 --prepackaged "${{ steps.find_unpacked.outputs.unpacked }}" --config.artifactName='ptsolns-ide_${version}_Windows_64bit.${ext}' -c.directories.output=dist/build-artifacts
 
-      # Sign Windows Final Installers
       - name: Sign Windows installers (Azure Trusted Signing)
         if: matrix.config.name == 'Windows'
-        uses: azure/trusted-signing-action@v0.5.1
+        uses: azure/trusted-signing-action@v0
         with:
           endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
@@ -344,7 +342,7 @@ jobs:
           files-folder-filter: exe,msi
           timestamp-url: http://timestamp.digicert.com
 
-      # (Upload & Merge steps kept as is)
+      # (Upload & Merge steps)
       - name: Stage channel file for merge
         if: needs.select-targets.outputs.merge-channel-files == 'true' && matrix.config.mergeable-channel-file == 'true'
         working-directory: ${{ matrix.config.working-directory || './' }}
