@@ -599,6 +599,21 @@ jobs:
           Copy-Item "electron-app/dist/*.blockmap"  "electron-app/dist/build-artifacts/" -Force
       
           Get-ChildItem "electron-app/dist/build-artifacts" | Select-Object FullName
+          
+      - name: Mirror non-Windows artifacts to build-artifacts
+        if: matrix.config.name != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p "electron-app/dist/build-artifacts"
+      
+          # Copy whatever exists for Linux/mac
+          cp -f electron-app/dist/*.AppImage electron-app/dist/build-artifacts/ 2>/dev/null || true
+          cp -f electron-app/dist/*.dmg      electron-app/dist/build-artifacts/ 2>/dev/null || true
+          cp -f electron-app/dist/*.zip      electron-app/dist/build-artifacts/ 2>/dev/null || true
+          cp -f electron-app/dist/*.yml      electron-app/dist/build-artifacts/ 2>/dev/null || true
+          cp -f electron-app/dist/*.blockmap electron-app/dist/build-artifacts/ 2>/dev/null || true
+      
+          ls -la electron-app/dist/build-artifacts
 
 
       - name: Recalculate SHA512 hashes
