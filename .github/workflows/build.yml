@@ -364,6 +364,9 @@ jobs:
           IS_NIGHTLY: ${{ needs.build-type-determination.outputs.is-nightly }}
           IS_RELEASE: ${{ needs.build-type-determination.outputs.is-release }}
           CAN_SIGN: ${{ secrets[matrix.config.certificate-secret] != '' }}
+          DEBUG: electron-builder,electron-builder:*
+          ELECTRON_BUILDER_LOG_LEVEL: debug
+
         working-directory: ${{ matrix.config.working-directory || './' }}
         run: |
           if [ $CAN_SIGN = false ] || [ $IS_WINDOWS_CONFIG = true ]; then
@@ -381,9 +384,17 @@ jobs:
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
-          yarn --cwd electron-app package
+          yarn --cwd electron-app package --verbose 2>&1 | tee electron-app-package.log
 
-         
+      - name: Upload mac package log
+        if: matrix.config.name != 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-app-package-log-${{ matrix.config.job-transfer-artifact-suffix }}
+          path: electron-app-package.log
+
+
+
 # DIAG
 #       - name: Diagnostic - find CH340 exe in electron-app/dist
 #         if: matrix.config.name == 'Windows'
