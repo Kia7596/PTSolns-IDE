@@ -456,6 +456,41 @@ jobs:
           # Sign only PE binaries. Start narrow (exe,dll). Expand later if needed.
           files-folder-filter: exe,dll
 
+      # NEW: Sign backend tools (clangd, language-server, cli, rg, windows-trash, etc.)
+      - name: Sign Windows app binaries (backend tools) - Azure Trusted Signing
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\backend
+          files-folder-filter: exe,dll
+
+      # NEW: Sign build/native helpers (winpty-agent.exe, winpty.dll)
+      - name: Sign Windows app binaries (native/build helpers) - Azure Trusted Signing
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources\app\lib\build\Release
+          files-folder-filter: exe,dll
+
+      # NEW: Sign elevate.exe (it lives directly under resources)
+      - name: Sign Windows app binaries (resources root helpers) - Azure Trusted Signing
+        if: matrix.config.name == 'Windows'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ env.WIN_UNPACKED_DIR }}\resources
+          files-folder-filter: exe,dll
+
+
+
       # NEW: Verify signatures in win-unpacked (fail the build if anything is left unsigned)
       - name: Verify signatures in win-unpacked (must be Valid)
         if: matrix.config.name == 'Windows'
