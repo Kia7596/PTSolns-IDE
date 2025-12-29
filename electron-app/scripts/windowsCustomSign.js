@@ -2,9 +2,14 @@ const { execSync } = require('child_process');
 const path = require('path');
 
 exports.default = async function (configuration) {
-  // Only run on Windows
+  // 1. Prelim Checks: Windows only, and check if signing is enabled globally
   if (process.platform !== 'win32') {
     console.log('[CustomSign] Skipping: Not on Windows.');
+    return;
+  }
+
+  if (process.env.CAN_SIGN !== 'true') {
+    console.log('[CustomSign] Skipping: CAN_SIGN is not true.');
     return;
   }
 
@@ -14,13 +19,15 @@ exports.default = async function (configuration) {
   // ---------------------------------------------------------
   // STRATEGY 1: Azure Trusted Signing (Priority)
   // ---------------------------------------------------------
+  // We check if the workflow set up the Azure variables.
   if (process.env.AZURE_SIGNING_METADATA_PATH && process.env.AZURE_DLIB_PATH) {
     console.log('[CustomSign] Azure Trusted Signing configuration detected.');
     
     const dlibPath = process.env.AZURE_DLIB_PATH;
     const metadataPath = process.env.AZURE_SIGNING_METADATA_PATH;
 
-    // Construct the command for Azure
+    // Construct the signtool command for Azure
+    // Note: We use 'signtool' directly here, assuming it's in the path or setup by the workflow
     const cmd = `signtool sign /v /debug /fd sha256 /tr http://timestamp.digicert.com /td sha256 /dlib "${dlibPath}" /dmdf "${metadataPath}" "${filePath}"`;
 
     try {
@@ -37,21 +44,16 @@ exports.default = async function (configuration) {
   // ---------------------------------------------------------
   // STRATEGY 2: Legacy eToken / Certificate Signing (Fallback)
   // ---------------------------------------------------------
+  // This is your original logic.
   
-  if (process.env.CAN_SIGN !== 'true') {
-    console.log('[CustomSign] Skipping legacy signing (CAN_SIGN is not true).');
-    return;
-  }
-
   const SIGNTOOL_PATH = process.env.SIGNTOOL_PATH || 'signtool';
   const INSTALLER_CERT_WINDOWS_CER = process.env.INSTALLER_CERT_WINDOWS_CER;
   const CERT_PASSWORD = process.env.WIN_CERT_PASSWORD;
   const CONTAINER_NAME = process.env.WIN_CERT_CONTAINER_NAME;
 
-  if (SIGNTOOL_PATH && INSTALLER_CERT_WINDOWS_CER && CERT_PASSWORD && CONTAINER_NAME) {
+  if (INSTALLER_CERT_WINDOWS_CER && CERT_PASSWORD && CONTAINER_NAME) {
     console.log('[CustomSign] Legacy eToken configuration detected. Signing...');
     
-    // Your original legacy command
     const cmd = `"${SIGNTOOL_PATH}" sign -d "PTSolns IDE" -f "${INSTALLER_CERT_WINDOWS_CER}" -csp "eToken Base Cryptographic Provider" -k "[{{${CERT_PASSWORD}}}]=${CONTAINER_NAME}" -fd sha256 -tr http://timestamp.digicert.com -td SHA256 -v "${filePath}"`;
 
     try {
@@ -62,9 +64,13 @@ exports.default = async function (configuration) {
       throw error; // Fail the build if both methods fail
     }
   } else {
-    // If we are in GitHub Actions and expected to sign, fail hard.
+    // If we are in GitHub Actions and expected to sign, but neither config was found:
     if (process.env.GITHUB_ACTIONS) {
-        console.warn(`[CustomSign] Failed: Neither Azure nor Legacy configuration was complete.`);
+        console.warn(
+          `[CustomSign] FAILED: Neither Azure nor Legacy configuration was complete.\n` +
+          `Azure Metdata: ${process.env.AZURE_SIGNING_METADATA_PATH ? 'OK' : 'MISSING'}\n` +
+          `Legacy Cert: ${INSTALLER_CERT_WINDOWS_CER ? 'OK' : 'MISSING'}`
+        );
         process.exit(1);
     }
   }
