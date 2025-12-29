@@ -299,7 +299,7 @@ jobs:
       contents: read
 
     env:
-      BUILD_ARTIFACTS_PATH: dist
+      BUILD_ARTIFACTS_PATH: electron-app/dist/build-artifacts
       IS_WINDOWS_CONFIG: ${{ matrix.config.name == 'Windows' }}
       INSTALLER_CERT_WINDOWS_CER: "/tmp/cert.cer"
       SIGNTOOL_PATH: "C:/Program Files (x86)/Windows Kits/10/bin/10.0.19041.0/x86/signtool.exe"
@@ -583,6 +583,23 @@ jobs:
           if-no-files-found: error
           name: ${{ env.STAGED_CHANNEL_FILE_ARTIFACT_PREFIX }}${{ matrix.config.job-transfer-artifact-suffix }}
           path: ${{ matrix.config.working-directory && format('{0}/{1}', matrix.config.working-directory, env.STAGED_CHANNEL_FILES_PATH) || env.STAGED_CHANNEL_FILES_PATH }}
+
+      - name: Mirror Windows artifacts to build-artifacts
+        if: matrix.config.name == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "electron-app/dist/build-artifacts" | Out-Null
+      
+          Copy-Item "electron-app/dist/*Setup*.exe" "electron-app/dist/build-artifacts/" -Force
+          Copy-Item "electron-app/dist/*.msi"       "electron-app/dist/build-artifacts/" -Force
+          Copy-Item "electron-app/dist/*win*.zip"   "electron-app/dist/build-artifacts/" -Force
+      
+          # include update metadata too (recommended)
+          Copy-Item "electron-app/dist/*.yml"       "electron-app/dist/build-artifacts/" -Force
+          Copy-Item "electron-app/dist/*.blockmap"  "electron-app/dist/build-artifacts/" -Force
+      
+          Get-ChildItem "electron-app/dist/build-artifacts" | Select-Object FullName
+
 
       - name: Recalculate SHA512 hashes
         working-directory: ${{ matrix.config.working-directory || './' }}
