@@ -83,8 +83,12 @@
       "electron-app"
     ],
     "nohoist": [
-      "**/electron-app",
-      "**/electron-app/**"
+      "**/reflect-metadata",
+      "**/reflect-metadata/**",
+      "**/fix-path",
+      "**/fix-path/**",
+      "**/shell-path",
+      "**/shell-path/**"
     ]
   }
 }
