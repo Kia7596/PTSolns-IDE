@@ -126,10 +126,7 @@
       "arduino-ide-electron-main.js",
       "src-gen",
       "lib",
-      "resources/icons/512x512.png",
-       "!**node_modules/**",
-       "node_modules/reflect-metadata/**/*",
-       "node_modules/fix-path/**/*"
+      "resources/icons/512x512.png"
     ],
     "extraResources": [
       {
