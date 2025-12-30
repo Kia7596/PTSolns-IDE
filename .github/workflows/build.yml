@@ -374,6 +374,52 @@ jobs:
             export CSC_KEY_PASSWORD="${{ secrets[matrix.config.certificate-password-secret] }}"
             export CSC_FOR_PULL_REQUEST=true
           fi
+          
+      - name: macOS - cleanup DMG mounts (fix "Resource busy")
+        if: startsWith(matrix.config.name, 'macOS')
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          echo "Mounted disk images:"
+          hdiutil info || true
+
+          # Try to detach any leftover /dev/disk* from dmg builds
+          # Retry because macOS CI often holds a handle briefly.
+          for i in 1 2 3 4 5; do
+            echo "Detach attempt $i..."
+
+            # Collect candidate devices (disk identifiers) from hdiutil
+            DISKS="$(hdiutil info | awk '/^\/dev\/disk/ {print $1}' | sort -u || true)"
+
+            if [ -z "${DISKS:-}" ]; then
+              echo "No /dev/disk* images to detach."
+              exit 0
+            fi
+
+            echo "Found disks: $DISKS"
+
+            FAILED=0
+            for d in $DISKS; do
+              echo "Trying: hdiutil detach $d"
+              if ! hdiutil detach "$d"; then
+                echo "Normal detach failed for $d, trying force..."
+                hdiutil detach -force "$d" || FAILED=1
+              fi
+            done
+
+            if [ "$FAILED" -eq 0 ]; then
+              echo "All disk images detached."
+              exit 0
+            fi
+
+            sleep 3
+          done
+
+          echo "Still failing to detach disk images after retries."
+          hdiutil info || true
+          exit 1
+
 
           npx node-gyp install
           yarn install
@@ -390,8 +436,39 @@ jobs:
             yarn --cwd electron-app package
           fi
 
+      - name: macOS - cleanup DMG mounts (fix Resource busy)
+        if: startsWith(matrix.config.name, 'macOS')
+        shell: bash
+        run: |
+          set -euxo pipefail
 
-         
+          echo "Mounted disk images:"
+          hdiutil info || true
+
+          for i in 1 2 3 4 5; do
+            echo "Detach attempt $i..."
+
+            DISKS="$(hdiutil info | awk '/^\/dev\/disk/ {print $1}' | sort -u || true)"
+
+            if [ -z "${DISKS:-}" ]; then
+              echo "No disk images mounted."
+              exit 0
+            fi
+
+            FAILED=0
+            for d in $DISKS; do
+              echo "Detaching $d"
+              hdiutil detach "$d" || hdiutil detach -force "$d" || FAILED=1
+            done
+
+            [ "$FAILED" -eq 0 ] && exit 0
+            sleep 3
+          done
+
+          echo "Failed to detach disk images"
+          hdiutil info || true
+          exit 1
+  
 # DIAG
 #       - name: Diagnostic - find CH340 exe in electron-app/dist
 #         if: matrix.config.name == 'Windows'
