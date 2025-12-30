@@ -10,7 +10,7 @@
     "@theia/editor": "1.57.0",
     "@theia/electron": "1.57.0",
     "@theia/filesystem": "1.57.0",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
     "@theia/keymaps": "1.57.0",
     "@theia/messages": "1.57.0",
     "@theia/monaco": "1.57.0",
