@@ -93,6 +93,15 @@ jobs:
           certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
           files-folder: electron-app/dist/win-unpacked/resources/app/lib/backend/resources
           files-folder-filter: exe,dll
+          
+      - name: Sign payload (winpty Release)
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.CERTIFICATE_PROFILE_NAME }}
+          files-folder: electron-app/dist/win-unpacked/resources/app/lib/build/Release
+          files-folder-filter: exe,dll
 
       - name: Verify payload signatures
         shell: pwsh
