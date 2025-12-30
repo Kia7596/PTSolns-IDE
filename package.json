@@ -77,8 +77,14 @@
       "pre-commit": "lint-staged"
     }
   },
-  "workspaces": [
-    "arduino-ide-extension",
-    "electron-app"
-  ]
+  "workspaces": {
+    "packages": [
+      "arduino-ide-extension",
+      "electron-app"
+    ],
+    "nohoist": [
+      "**/electron-app",
+      "**/electron-app/**"
+    ]
+  }
 }
