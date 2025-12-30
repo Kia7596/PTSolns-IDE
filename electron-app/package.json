@@ -11,7 +11,7 @@
     "@theia/electron": "1.57.0",
     "@theia/filesystem": "1.57.0",
     "reflect-metadata": "^0.2.2",
-    "fix-path": "^4.0.0",
+    "fix-path": "^3.0.0",
     "@theia/keymaps": "1.57.0",
     "@theia/messages": "1.57.0",
     "@theia/monaco": "1.57.0",
