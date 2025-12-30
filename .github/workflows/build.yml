@@ -45,10 +45,7 @@ jobs:
         run: |
           npx node-gyp install
           yarn install
-          # --- COPY MISSING DEPENDENCIES ---
-          mkdir -p electron-app/node_modules
-          cp -r node_modules/reflect-metadata electron-app/node_modules/
-          cp -r node_modules/fix-path electron-app/node_modules/  # <--- NEW LINE
+          
           yarn --cwd arduino-ide-extension build
           yarn --cwd electron-app rebuild
           yarn --cwd electron-app build
